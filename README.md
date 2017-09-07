@@ -1,4 +1,4 @@
-bergwerkLABS-Party-System
+bergwerkLABS Party System
 =========================
 
 Module
