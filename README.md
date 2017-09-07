@@ -1,3 +1,5 @@
+![alt-text](http://i.imgur.com/XoTikUf.png)
+
 bergwerkLABS Party System
 =========================
 
