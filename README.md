@@ -1,4 +1,6 @@
-bergwerkLABS-Party-System
+![alt-text](http://i.imgur.com/XoTikUf.png)
+
+bergwerkLABS Party System
 =========================
 
 Module
