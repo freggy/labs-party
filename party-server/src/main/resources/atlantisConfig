@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atlantis:clientBaseConfiguration xmlns:atlantis="http://bergwerklabs.de/atlantis">
+    <atlantis:server>
+        <atlantis:address>devs.bergwerklabs.de</atlantis:address>
+        <atlantis:port>6501</atlantis:port>
+    </atlantis:server>
+
+    <atlantis:consumers>
+        <atlantis:consumer name="party_create_package">
+            <atlantis:consumes class="de.bergwerklabs.atlantis.api.party"/>
+        </atlantis:consumer>
+    </atlantis:consumers>
+</atlantis:clientBaseConfiguration>

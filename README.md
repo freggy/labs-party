@@ -9,6 +9,21 @@ Module
 | de.bergwerklabs.party | de.bergwerklabs.party.server | party-server |
 | de.bergwerklabs.party | de.bergwerklabs.party.api    | party-api    |
 
+
+Party Server
+============
+
+Der Server versendet und empfängt Packete und verwaltet diese. Der Party-Server ist ein Atlantis-Standalone-Client, 
+der keine Abhängigkeiten zu Spigot ö. Ä. haben darf.
+
+Party API
+=========
+
+Basic Usage
+----------- 
+
+- TODO -
+
 Code Konventionen
 =================
 
