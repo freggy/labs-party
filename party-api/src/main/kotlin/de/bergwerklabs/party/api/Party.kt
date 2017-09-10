@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.api
 
+import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import java.util.*
 
 /**
@@ -13,9 +14,9 @@ interface Party {
     
     fun changeOwner(newOwner: UUID)
     
-    fun addMember(member: UUID)
+    fun removeMember(member: UUID)
     
-    fun removeMember(member: UUID);
+    fun invite(player: UUID): PartyInviteStatus
     
     fun save()
 }

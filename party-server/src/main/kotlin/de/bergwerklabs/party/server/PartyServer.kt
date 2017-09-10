@@ -2,7 +2,6 @@ package de.bergwerklabs.party.server
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.client.base.ConfiguredClientBootstrap
-import de.bergwerklabs.atlantis.party.packages.AtlantisParty
 
 var server: PartyServer? = null
 
@@ -12,8 +11,6 @@ var server: PartyServer? = null
  * @author Yannic Rieger
  */
 class PartyServer {
-    
-    val currentParties = listOf<AtlantisParty>()
     
     init {
         server = this
