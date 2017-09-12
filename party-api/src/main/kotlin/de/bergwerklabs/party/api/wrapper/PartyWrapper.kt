@@ -23,26 +23,34 @@ import kotlin.collections.HashSet
  */
 internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: MutableList<UUID>) : Party {
     
+    private var disbanded: Boolean = false
+    
     /**
      * Gets a [Set] of [UUID]s representing the members of this party.
      */
-    val members: Set<UUID>
-        get() = HashSet(membersList).toSet()
+    override fun getMembers(): Set<UUID> = HashSet(membersList).toSet()
     
+    /**
+     * Gets whether or not the player is the owner of a party.
+     */
+    override fun isOwner(player: UUID): Boolean = this.owner == player
+    
+    /**
+     * Gets whether or not the player is only a member of this party.
+     */
+    override fun isMember(player: UUID): Boolean = this.membersList.contains(player)
     
     /**
      * Gets whether or not the party was is disbanded.
      */
-    var isDisbanded: Boolean = false
-        get
-        private set
+    override fun isDisbanded(): Boolean = disbanded
     
     /**
      * Disbands the party.
      */
     override fun disband() {
-        if (this.isDisbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
-        this.isDisbanded = true
+        if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
+        this.disbanded = true
         AtlantisPackageUtil.sendPackage(PartyDisbandPackage(this.id))
     }
     
@@ -52,16 +60,18 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: Muta
      * @param newOwner [UUID] of the new owner.
      */
     override fun changeOwner(newOwner: UUID) {
-        if (this.isDisbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
+        if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         AtlantisPackageUtil.sendPackage(PartyChangeOwnerPackage(id, this.owner, newOwner))
         this.owner = newOwner
     }
     
     /**
+     * Invites a player to a party.
      *
+     * @return the [PartyInviteStatus]
      */
     override fun invite(player: UUID): PartyInviteStatus {
-        if (this.isDisbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
+        if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         var status = PartyInviteStatus.ACCEPTED
         AtlantisPackageUtil.sendPackage(PartyPlayerInvitePackage(this.id, player), AtlantisPackageCallback { pkg: APackage ->
             if (pkg is PartyPlayerInviteResponsePackage) {
@@ -83,10 +93,10 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: Muta
      * @param member [UUID] of the member to remove from the party.
      */
     override fun removeMember(member: UUID) {
-        if (this.isDisbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
+        if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         if (member == this.owner) {
             this.membersList.remove(member)
-            this.changeOwner(this.membersList[Random().nextInt(this.members.size)])
+            this.changeOwner(this.membersList[Random().nextInt(this.membersList.size)])
         }
         else {
             this.membersList.remove(member)
@@ -98,7 +108,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: Muta
      * Saves the party.
      */
     override fun save() {
-        if (this.isDisbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
+        if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         AtlantisPackageUtil.sendPackage(PartySavePackage(this.id))
     }
 }

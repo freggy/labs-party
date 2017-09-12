@@ -12,6 +12,4 @@
         <module>party-server</module>
         <module>party-api</module>
     </modules>
-
-
 </project>

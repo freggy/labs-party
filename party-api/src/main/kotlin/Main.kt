@@ -1,3 +1,5 @@
+import de.bergwerklabs.atlantis.client.base.ConfiguredClientBootstrap
+
 /**
  * Created by Yannic Rieger on 08.09.2017.
  *
@@ -11,7 +13,7 @@ class Main {
         
         @JvmStatic
         fun main(args: Array<String>) {
-        
+            ConfiguredClientBootstrap.startConfiguredClients()
         }
     }
 }
