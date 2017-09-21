@@ -3,11 +3,12 @@ package de.bergwerklabs.party.api.wrapper
 import de.bergwerklabs.atlantis.api.packages.APackage
 import de.bergwerklabs.atlantis.api.party.packages.PartyChangeOwnerPackage
 import de.bergwerklabs.atlantis.api.party.packages.PartyDisbandPackage
-import de.bergwerklabs.atlantis.api.party.packages.PartyPlayerLeavePackage
 import de.bergwerklabs.atlantis.api.party.packages.PartySavePackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.InviteStatus
-import de.bergwerklabs.atlantis.api.party.packages.invite.PartyPlayerInvitePackage
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyPlayerInviteRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyPlayerInviteResponsePackage
+import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
+import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePackage
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageCallback
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.api.Party
@@ -73,7 +74,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: Muta
     override fun invite(player: UUID): PartyInviteStatus {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         var status = PartyInviteStatus.ACCEPTED
-        AtlantisPackageUtil.sendPackage(PartyPlayerInvitePackage(this.id, player), AtlantisPackageCallback { pkg: APackage ->
+        AtlantisPackageUtil.sendPackage(PartyPlayerInviteRequestPackage(this.id, player), AtlantisPackageCallback { pkg: APackage ->
             if (pkg is PartyPlayerInviteResponsePackage) {
                 status = when (pkg.status!!) {
                     InviteStatus.ACCEPTED -> PartyInviteStatus.ACCEPTED
@@ -92,7 +93,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: Muta
      *
      * @param member [UUID] of the member to remove from the party.
      */
-    override fun removeMember(member: UUID) {
+    override fun removeMember(member: UUID, update: PartyUpdateAction) {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         if (member == this.owner) {
             this.membersList.remove(member)
@@ -101,7 +102,14 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: Muta
         else {
             this.membersList.remove(member)
         }
-        AtlantisPackageUtil.sendPackage(PartyPlayerLeavePackage(this.id, member))
+        
+        val status = when (update) {
+            PartyUpdateAction.PLAYER_JOIN  -> PartyUpdate.PLAYER_JOIN
+            PartyUpdateAction.PLAYER_LEAVE -> PartyUpdate.PLAYER_LEAVE
+            PartyUpdateAction.PLAYER_KICK  -> PartyUpdate.PLAYER_KICK
+        }
+        
+        AtlantisPackageUtil.sendPackage(PartyUpdatePackage(this.id, member, status))
     }
     
     /**

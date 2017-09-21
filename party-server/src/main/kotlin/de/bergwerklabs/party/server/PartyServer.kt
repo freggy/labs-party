@@ -2,8 +2,12 @@ package de.bergwerklabs.party.server
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.client.base.ConfiguredClientBootstrap
+import java.util.*
 
 var server: PartyServer? = null
+
+val currentParties = HashMap<UUID, AtlantisParty>()
+
 
 /**
  * Created by Yannic Rieger on 06.09.2017.

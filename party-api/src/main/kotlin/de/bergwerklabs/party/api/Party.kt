@@ -1,6 +1,7 @@
 package de.bergwerklabs.party.api
 
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
+import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
 
@@ -52,7 +53,7 @@ interface Party {
      *
      * @param member [UUID] of the member to remove from the party.
      */
-    fun removeMember(member: UUID)
+    fun removeMember(member: UUID, update: PartyUpdateAction)
     
     /**
      * Invites a player to a party.
