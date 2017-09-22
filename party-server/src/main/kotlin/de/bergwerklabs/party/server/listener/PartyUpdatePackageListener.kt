@@ -3,8 +3,7 @@ package de.bergwerklabs.party.server.listener
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePackage
-import de.bergwerklabs.atlantis.intern.networkComponent.shared.ConsumerPipeline
-import de.bergwerklabs.atlantis.intern.networkComponent.shared.PackageReceivedListener
+import de.bergwerklabs.party.server.AtlantisPackageListener
 import de.bergwerklabs.party.server.AtlantisParty
 import de.bergwerklabs.party.server.currentParties
 import java.util.*
@@ -14,17 +13,15 @@ import java.util.*
  * <p>
  * @author Yannic Rieger
  */
-class PartyUpdatePackageListener(acceptedClass: Class<PartyUpdatePackage>?) : PackageReceivedListener<PartyUpdatePackage>(acceptedClass) {
+class PartyUpdatePackageListener : AtlantisPackageListener<PartyUpdatePackage>() {
     
     private val logger = AtlantisLogger.getLogger(PartyUpdatePackageListener::class.java)
     
-    override fun onPackageReceived(pkg: PartyUpdatePackage?, p1: ConsumerPipeline?) {
-        if (pkg != null) {
-            when (pkg.update) {
-                PartyUpdate.PLAYER_JOIN  -> this.handlePlayerJoin(pkg.player, pkg.partyId)
-                PartyUpdate.PLAYER_KICK  -> this.handlePlayerKick(pkg.player, pkg.partyId)
-                PartyUpdate.PLAYER_LEAVE -> this.handlePlayerLeave(pkg.player, pkg.partyId)
-            }
+    override fun onResponse(pkg: PartyUpdatePackage) {
+        when (pkg.update) {
+            PartyUpdate.PLAYER_JOIN  -> this.handlePlayerJoin(pkg.player, pkg.partyId)
+            PartyUpdate.PLAYER_KICK  -> this.handlePlayerKick(pkg.player, pkg.partyId)
+            PartyUpdate.PLAYER_LEAVE -> this.handlePlayerLeave(pkg.player, pkg.partyId)
         }
     }
     
