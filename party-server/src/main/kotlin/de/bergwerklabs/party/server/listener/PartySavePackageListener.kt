@@ -11,7 +11,6 @@ import de.bergwerklabs.party.server.AtlantisPackageListener
 class PartySavePackageListener : AtlantisPackageListener<PartySavePackage>() {
     
     override fun onResponse(pkg: PartySavePackage) {
-    
+        // TODO: save party to db
     }
-    
 }

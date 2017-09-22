@@ -37,7 +37,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: Muta
     override fun isOwner(player: UUID): Boolean = this.owner == player
     
     /**
-     * Gets whether or not the player is only a member of this party.
+     * Gets whether or not the player is only a member of this party. The party owner also counts as a member.
      */
     override fun isMember(player: UUID): Boolean = this.membersList.contains(player)
     
@@ -63,7 +63,10 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: Muta
     override fun changeOwner(newOwner: UUID) {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         AtlantisPackageUtil.sendPackage(PartyChangeOwnerPackage(id, this.owner, newOwner))
+        this.membersList.remove(this.owner)
         this.owner = newOwner
+        this.membersList.add(newOwner)
+        
     }
     
     /**
@@ -74,7 +77,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: Muta
     override fun invite(player: UUID): PartyInviteStatus {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         var status = PartyInviteStatus.ACCEPTED
-        AtlantisPackageUtil.sendPackage(PartyPlayerInviteRequestPackage(this.id, player), AtlantisPackageCallback { pkg: APackage ->
+        AtlantisPackageUtil.sendPackage(PartyPlayerInviteRequestPackage(this.id, player), AtlantisPackageCallback { pkg ->
             if (pkg is PartyPlayerInviteResponsePackage) {
                 status = when (pkg.status!!) {
                     InviteStatus.ACCEPTED -> PartyInviteStatus.ACCEPTED

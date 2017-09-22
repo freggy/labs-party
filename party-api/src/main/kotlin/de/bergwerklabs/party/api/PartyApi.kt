@@ -1,6 +1,5 @@
 package de.bergwerklabs.party.api
 
-import de.bergwerklabs.atlantis.api.party.packages.PartyCreatePackage
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
@@ -44,7 +43,7 @@ class PartyApi {
          * @return whether or not the player is only a member.
          */
         @JvmStatic
-        fun isPartyMember(player: UUID) = currentParties.values.any { party -> party.isOwner(player) || party.isMember(player) }
+        fun isPartyMember(player: UUID) = currentParties.values.any { party -> party.isMember(player) }
     
     
         /**
@@ -54,7 +53,7 @@ class PartyApi {
          * @return [Optional] that contains the party of the player if he is in one.
          */
         @JvmStatic
-        fun getParty(player: UUID): Optional<Party> = Optional.ofNullable(currentParties.values.filter { party -> party.isMember(player) || party.isOwner(player) }.getOrNull(0))
+        fun getParty(player: UUID): Optional<Party> = Optional.ofNullable(currentParties.values.filter { party -> party.isMember(player) }.getOrNull(0))
         
     
         /**
