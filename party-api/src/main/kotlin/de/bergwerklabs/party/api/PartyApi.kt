@@ -3,14 +3,12 @@ package de.bergwerklabs.party.api
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponseType
+import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoRequestPackage
+import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePackage
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.api.wrapper.PartyCreateStatus
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
-import java.util.concurrent.Future
-
-
-internal val currentParties = hashMapOf<UUID, Party>()
 
 /**
  * Created by Yannic Rieger on 06.09.2017.
@@ -30,7 +28,10 @@ class PartyApi {
          * @return whether or not the player is in a party.
          */
         @JvmStatic
-        fun isPartied(player: UUID) = currentParties.values.any { party -> party.isOwner(player) || party.isMember(player) }
+        fun isPartied(player: UUID): Boolean {
+            val response = this.sendInfoPacketAndGetResponse(player)
+            return response.party != null
+        }
     
         /**
          * Determines whether or not the player is the owner of the [Party]
@@ -39,7 +40,10 @@ class PartyApi {
          * @return whether or not the player is the party owner.
          */
         @JvmStatic
-        fun isPartyOwner(player: UUID) = currentParties.values.any { party -> party.isOwner(player) }
+        fun isPartyOwner(player: UUID): Boolean {
+            val response = this.sendInfoPacketAndGetResponse(player)
+            return response.party.owner == player
+        }
     
         /**
          * Determines whether or not the player is a party member.
@@ -48,7 +52,10 @@ class PartyApi {
          * @return whether or not the player is only a member.
          */
         @JvmStatic
-        fun isPartyMember(player: UUID) = currentParties.values.any { party -> party.isMember(player) }
+        fun isPartyMember(player: UUID): Boolean {
+            val response = this.sendInfoPacketAndGetResponse(player)
+            return response.party.members.contains(player)
+        }
     
     
         /**
@@ -58,7 +65,13 @@ class PartyApi {
          * @return [Optional] that contains the party of the player if he is in one.
          */
         @JvmStatic
-        fun getParty(player: UUID): Optional<Party> = Optional.ofNullable(currentParties.values.filter { party -> party.isMember(player) }.getOrNull(0))
+        fun getParty(player: UUID): Optional<Party> {
+            val response = this.sendInfoPacketAndGetResponse(player)
+            return when {
+                response.party == null -> Optional.empty()
+                else                   -> Optional.of(PartyWrapper(response.party))
+            }
+        }
         
     
         /**
@@ -80,6 +93,11 @@ class PartyApi {
                 response.type == PartyCreateResponseType.SUCCESS                       -> PartyCreateResult(Optional.of(PartyWrapper(response.partyId, owner, members.toMutableList())), PartyCreateStatus.SUCCESS)
                 else                                                                   -> PartyCreateResult(Optional.empty(), PartyCreateStatus.UNKNOWN_ERROR)
             }
+        }
+        
+        private fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePackage {
+            val future = AtlantisPackageUtil.sendPackageWithFuture<PartyInfoResponsePackage>(PartyInfoRequestPackage(player))
+            return future.get()
         }
     }
 }

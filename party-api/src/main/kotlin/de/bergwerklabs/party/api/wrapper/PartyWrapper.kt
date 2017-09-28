@@ -1,6 +1,7 @@
 package de.bergwerklabs.party.api.wrapper
 
 import de.bergwerklabs.atlantis.api.packages.APackage
+import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.PartyChangeOwnerPackage
 import de.bergwerklabs.atlantis.api.party.packages.PartyDisbandPackage
 import de.bergwerklabs.atlantis.api.party.packages.PartySavePackage
@@ -22,7 +23,9 @@ import kotlin.collections.HashSet
  *
  * @author Yannic Rieger
  */
-internal class PartyWrapper(val id: UUID, var owner: UUID, val membersList: MutableList<UUID>) : Party {
+internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersList: MutableList<UUID>) : Party {
+    
+    constructor(party: AtlantisParty) : this(party.id, party.owner, party.members)
     
     private var disbanded: Boolean = false
     
