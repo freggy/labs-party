@@ -1,6 +1,5 @@
 package de.bergwerklabs.party.api.wrapper
 
-import de.bergwerklabs.atlantis.api.packages.APackage
 import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.PartyChangeOwnerPackage
 import de.bergwerklabs.atlantis.api.party.packages.PartyDisbandPackage

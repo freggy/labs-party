@@ -1,14 +1,15 @@
 package de.bergwerklabs.party.server.listener
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
+import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRequestPackage
 
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponseType
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.server.AtlantisPackageListener
-import de.bergwerklabs.party.server.AtlantisParty
 import de.bergwerklabs.party.server.currentParties
+import java.util.*
 
 /**
  * Created by Yannic Rieger on 21.09.2017.
@@ -17,7 +18,7 @@ import de.bergwerklabs.party.server.currentParties
  */
 class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPackage>() {
     
-    private val logger = AtlantisLogger.getLogger(PartyCreateRequestListener::class.java)
+    private val logger = AtlantisLogger.getLogger(this::class.java)
     
     override fun onResponse(pkg: PartyCreateRequestPackage) {
         if (pkg.members.size > 7) { // TODO: make configurable && maybe check if owner is premium
@@ -25,8 +26,21 @@ class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPac
             AtlantisPackageUtil.sendResponse(PartyCreateResponsePackage(pkg.partyId, PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT), pkg)
             return
         }
+        
         logger.info("Creating party ${pkg.partyId} with member count of ${pkg.members.size}")
-        currentParties.put(pkg.partyId, AtlantisParty(pkg.owner, pkg.members))
-        AtlantisPackageUtil.sendResponse(PartyCreateResponsePackage(pkg.partyId, PartyCreateResponseType.SUCCESS), pkg)
+        val partyId = this.determineId()
+        currentParties.put(partyId, AtlantisParty(pkg.owner, pkg.members, partyId))
+        AtlantisPackageUtil.sendResponse(PartyCreateResponsePackage(partyId, PartyCreateResponseType.SUCCESS), pkg)
+    }
+    
+    /**
+     * Determines a [UUID] that isn't already taken.
+     */
+    private fun determineId(): UUID {
+        var partyId: UUID
+        do {
+            partyId = UUID.randomUUID()
+        } while (currentParties.containsKey(partyId))
+        return partyId
     }
 }

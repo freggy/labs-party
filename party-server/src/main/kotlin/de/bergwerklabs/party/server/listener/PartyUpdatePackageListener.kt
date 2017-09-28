@@ -1,10 +1,10 @@
 package de.bergwerklabs.party.server.listener
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
+import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePackage
 import de.bergwerklabs.party.server.AtlantisPackageListener
-import de.bergwerklabs.party.server.AtlantisParty
 import de.bergwerklabs.party.server.currentParties
 import java.util.*
 
@@ -15,7 +15,7 @@ import java.util.*
  */
 class PartyUpdatePackageListener : AtlantisPackageListener<PartyUpdatePackage>() {
     
-    private val logger = AtlantisLogger.getLogger(PartyUpdatePackageListener::class.java)
+    private val logger = AtlantisLogger.getLogger(this::class.java)
     
     override fun onResponse(pkg: PartyUpdatePackage) {
         when (pkg.update) {

@@ -7,6 +7,6 @@ import de.bergwerklabs.atlantis.api.packages.APackage
  * <p>
  * @author Yannic Rieger
  */
-abstract class AtlantisPackageListener<T : APackage> {
+abstract class AtlantisPackageListener<in T : APackage> {
     abstract fun onResponse(pkg: T)
 }

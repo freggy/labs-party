@@ -12,7 +12,7 @@ import de.bergwerklabs.party.server.currentParties
  */
 class PartyDisbandListener : AtlantisPackageListener<PartyDisbandPackage>() {
     
-    private val logger = AtlantisLogger.getLogger(PartyDisbandListener::class.java)
+    private val logger = AtlantisLogger.getLogger(this::class.java)
     
     override fun onResponse(pkg: PartyDisbandPackage) {
         logger.info("Disbanding party ${pkg.partyId}")

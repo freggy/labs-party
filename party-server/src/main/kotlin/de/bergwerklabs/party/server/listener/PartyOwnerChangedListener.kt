@@ -12,12 +12,10 @@ import de.bergwerklabs.party.server.currentParties
  */
 class PartyOwnerChangedListener : AtlantisPackageListener<PartyChangeOwnerPackage>() {
     
-    private val logger = AtlantisLogger.getLogger(PartyOwnerChangedListener::class.java)
+    private val logger = AtlantisLogger.getLogger(this::class.java)
     
     override fun onResponse(pkg: PartyChangeOwnerPackage) {
-        if (pkg != null) {
-            logger.info("Changed owner of party ${pkg.partyId} from ${pkg.oldOwner} to ${pkg.newOwner}")
-            currentParties[pkg.partyId]?.owner = pkg.newOwner
-        }
+        logger.info("Changed owner of party ${pkg.partyId} from ${pkg.oldOwner} to ${pkg.newOwner}")
+        currentParties[pkg.partyId]?.owner = pkg.newOwner
     }
 }
