@@ -9,6 +9,7 @@ import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.server.AtlantisPackageListener
 import de.bergwerklabs.party.server.AtlantisParty
 import de.bergwerklabs.party.server.currentParties
+
 /**
  * Created by Yannic Rieger on 21.09.2017.
  * <p>
@@ -21,10 +22,10 @@ class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPac
     override fun onResponse(pkg: PartyCreateRequestPackage) {
         if (pkg.members.size > 7) { // TODO: make configurable && maybe check if owner is premium
             logger.warn("Too much party members for party ${pkg.partyId}. Party member count: ${pkg.members.size}")
-            AtlantisPackageUtil.sendPackage(PartyCreateResponsePackage(pkg.partyId, PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT), pkg.sentFrom)
+            AtlantisPackageUtil.sendResponse(PartyCreateResponsePackage(pkg.partyId, PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT), pkg)
             return
         }
-        logger.info("Creating party ${pkg.partyId} with member count of ${pkg.members}")
+        logger.info("Creating party ${pkg.partyId} with member count of ${pkg.members.size}")
         currentParties.put(pkg.partyId, AtlantisParty(pkg.owner, pkg.members))
         AtlantisPackageUtil.sendResponse(PartyCreateResponsePackage(pkg.partyId, PartyCreateResponseType.SUCCESS), pkg)
     }

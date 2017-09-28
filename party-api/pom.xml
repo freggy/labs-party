@@ -71,7 +71,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>de.bergwerklabs.party.server.PartyServer</mainClass>
+                                    <mainClass>de.bergwerklabs.party.api.Main</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
@@ -83,5 +83,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

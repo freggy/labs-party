@@ -38,7 +38,6 @@ class PartyServer {
             AtlantisPackageUtil.addListener(PartyCreateRequestPackage::class.java, { pkg -> PartyCreateRequestListener().onResponse(pkg) })
             AtlantisPackageUtil.addListener(PartySavePackage::class.java,          { pkg -> PartySavePackageListener().onResponse(pkg) })
             AtlantisPackageUtil.addListener(PartyDisbandPackage::class.java,       { pkg -> PartyDisbandListener().onResponse(pkg) })
-            
         }
     }
 }

@@ -1,8 +1,13 @@
 package de.bergwerklabs.party.api
 
+import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRequestPackage
+import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePackage
+import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponseType
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
+import de.bergwerklabs.party.api.wrapper.PartyCreateStatus
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
+import java.util.concurrent.Future
 
 
 internal val currentParties = hashMapOf<UUID, Party>()
@@ -61,13 +66,20 @@ class PartyApi {
          *
          * @param owner [UUID] of the owner of the party.
          * @param members [List] of members of the party.
-         * @return a [Party]
+         * @return a [PartyCreateResult]
          */
         @JvmStatic
-        fun createParty(owner: UUID, members: List<UUID>): Party {
-            val partyId = UUID.randomUUID()
-            AtlantisPackageUtil.sendPackage(PartyCreatePackage(partyId, owner, members))
-            return PartyWrapper(partyId, owner, members.toMutableList())
+        fun createParty(owner: UUID, members: List<UUID>): PartyCreateResult {
+            val future = AtlantisPackageUtil.sendPackageWithFuture<PartyCreateResponsePackage>(PartyCreateRequestPackage(owner, members))
+            
+            val response = future.get()
+            
+            return when {
+                response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT)
+                response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_PREMIUM -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_PREMIUM)
+                response.type == PartyCreateResponseType.SUCCESS                       -> PartyCreateResult(Optional.of(PartyWrapper(response.partyId, owner, members.toMutableList())), PartyCreateStatus.SUCCESS)
+                else                                                                   -> PartyCreateResult(Optional.empty(), PartyCreateStatus.UNKNOWN_ERROR)
+            }
         }
     }
 }
