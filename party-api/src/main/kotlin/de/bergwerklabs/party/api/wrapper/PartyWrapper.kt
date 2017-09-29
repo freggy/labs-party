@@ -20,10 +20,17 @@ import kotlin.collections.HashSet
  *
  * Wraps the AtlantisParty class.
  *
+ * @param id          id of the party.
+ * @param owner       owner of the party.
+ * @param membersList members of the party
+ *
  * @author Yannic Rieger
  */
 internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersList: MutableList<UUID>) : Party {
     
+    /**
+     * @param party party object sent by Atlantis
+     */
     constructor(party: AtlantisParty) : this(party.id, party.owner, party.members)
     
     private var disbanded: Boolean = false
@@ -74,7 +81,8 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
     /**
      * Invites a player to a party.
      *
-     * @return the [PartyInviteStatus]
+     * @param player [UUID] of the player to invite.
+     * @return       the [PartyInviteStatus]
      */
     override fun invite(player: UUID): PartyInviteStatus {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")

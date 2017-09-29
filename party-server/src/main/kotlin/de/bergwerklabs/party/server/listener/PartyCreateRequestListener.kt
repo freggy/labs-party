@@ -13,7 +13,7 @@ import java.util.*
 
 /**
  * Created by Yannic Rieger on 21.09.2017.
- * <p>
+ *
  * @author Yannic Rieger
  */
 class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPackage>() {

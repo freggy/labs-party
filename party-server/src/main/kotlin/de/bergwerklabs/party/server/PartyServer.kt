@@ -19,7 +19,6 @@ val currentParties = HashMap<UUID, AtlantisParty>()
 
 /**
  * Created by Yannic Rieger on 06.09.2017.
- * <p>
  *
  * @author Yannic Rieger
  */

@@ -2,7 +2,9 @@ package de.bergwerklabs.party.api.wrapper
 
 /**
  * Created by Yannic Rieger on 28.09.2017.
- * <p>
+ *
+ * Results of a party create request.
+ *
  * @author Yannic Rieger
  */
 enum class PartyCreateStatus {

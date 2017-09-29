@@ -25,7 +25,7 @@ class PartyApi {
          * Determines whether or not a player is in a [Party].
          *
          * @param player [UUID] of the player to check.
-         * @return whether or not the player is in a party.
+         * @return              whether or not the player is in a party.
          */
         @JvmStatic
         fun isPartied(player: UUID): Boolean {
@@ -37,7 +37,7 @@ class PartyApi {
          * Determines whether or not the player is the owner of the [Party]
          *
          * @param player [UUID] of the potential owner.
-         * @return whether or not the player is the party owner.
+         * @return       whether or not the player is the party owner.
          */
         @JvmStatic
         fun isPartyOwner(player: UUID): Boolean {
@@ -49,7 +49,7 @@ class PartyApi {
          * Determines whether or not the player is a party member.
          *
          * @param player [UUID] of the player to check.
-         * @return whether or not the player is only a member.
+         * @return       whether or not the player is only a member.
          */
         @JvmStatic
         fun isPartyMember(player: UUID): Boolean {
@@ -62,7 +62,7 @@ class PartyApi {
          * Gets the [Optional] that contains the [Party] the player is currently a member of.
          *
          * @param player [UUID] of the player to check.
-         * @return [Optional] that contains the party of the player if he is in one.
+         * @return       [Optional] that contains the party of the player if he is in one.
          */
         @JvmStatic
         fun getParty(player: UUID): Optional<Party> {
@@ -77,9 +77,9 @@ class PartyApi {
         /**
          * Creates a new [Party].
          *
-         * @param owner [UUID] of the owner of the party.
+         * @param owner [UUID]   of the owner of the party.
          * @param members [List] of members of the party.
-         * @return a [PartyCreateResult]
+         * @return               a [PartyCreateResult]
          */
         @JvmStatic
         fun createParty(owner: UUID, members: List<UUID>): PartyCreateResult {
@@ -94,7 +94,12 @@ class PartyApi {
                 else                                                                   -> PartyCreateResult(Optional.empty(), PartyCreateStatus.UNKNOWN_ERROR)
             }
         }
-        
+    
+        /**
+         * Sends a [PartyInfoRequestPackage] and waits until the packet is received.
+         *
+         * @param player player to get the info from.
+         */
         private fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePackage {
             val future = AtlantisPackageUtil.sendPackageWithFuture<PartyInfoResponsePackage>(PartyInfoRequestPackage(player))
             return future.get()

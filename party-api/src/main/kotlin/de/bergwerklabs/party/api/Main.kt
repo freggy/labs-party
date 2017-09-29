@@ -16,7 +16,6 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
             val party = PartyApi.createParty(UUID.randomUUID(), listOf(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),UUID.randomUUID(), UUID.randomUUID()))
-            
         }
     }
 }

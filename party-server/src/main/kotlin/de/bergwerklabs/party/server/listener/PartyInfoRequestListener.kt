@@ -9,7 +9,7 @@ import de.bergwerklabs.party.server.currentParties
 
 /**
  * Created by Yannic Rieger on 28.09.2017.
- * <p>
+ *
  * @author Yannic Rieger
  */
 class PartyInfoRequestListener : AtlantisPackageListener<PartyInfoRequestPackage>() {
