@@ -8,6 +8,4 @@ import org.bukkit.entity.Player
  * <p>
  * @author Yannic Rieger
  */
-class PlayerPartyInviteEvent(party: Party, player: Player) : AbstractPartyEvent(party, player) {
-
-}
+class PlayerPartyInviteEvent(party: Party, player: Player) : AbstractPartyEvent(party, player)
