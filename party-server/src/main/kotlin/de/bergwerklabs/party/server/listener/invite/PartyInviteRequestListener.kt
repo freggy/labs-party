@@ -13,6 +13,7 @@ import de.bergwerklabs.party.server.pendingInvites
 class PartyInviteRequestListener : AtlantisPackageListener<PartyPlayerInviteRequestPackage>() {
     
     override fun onResponse(pkg: PartyPlayerInviteRequestPackage) {
-        pendingInvites[pkg.partyId] = InviteInfo(pkg.playerUuid, System.currentTimeMillis())
+        pendingInvites.computeIfAbsent(pkg.partyId, { uuid -> mutableListOf() })
+        pendingInvites[pkg.partyId]!!.add(InviteInfo(pkg.playerUuid, System.currentTimeMillis()))
     }
 }
