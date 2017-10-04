@@ -58,9 +58,18 @@ interface Party {
     /**
      * Invites a player to a party.
      *
-     * @return the [PartyInviteStatus]
+     * @param  player [UUID] of the player
+     * @return        the [PartyInviteStatus]
      */
     fun invite(player: UUID): PartyInviteStatus
+    
+    /**
+     * Invites a player to a party.
+     *
+     * @param player name of the player
+     * @return       the [PartyInviteStatus]
+     */
+    fun invite(player: String): PartyInviteStatus
     
     /**
      * Saves the party.

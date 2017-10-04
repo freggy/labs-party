@@ -7,6 +7,7 @@
         <groupId>de.bergwerklabs.party</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+    <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>party-client-parent</artifactId>
     <modules>

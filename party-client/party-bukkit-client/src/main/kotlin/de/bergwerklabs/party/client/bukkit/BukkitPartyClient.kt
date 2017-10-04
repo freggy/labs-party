@@ -1,6 +1,9 @@
 package de.bergwerklabs.party.client.bukkit
 
+import de.bergwerklabs.commons.spigot.chat.messenger.PluginMessenger
 import org.bukkit.plugin.java.JavaPlugin
+
+var bukkitClient: BukkitPartyClient = BukkitPartyClient()
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
@@ -9,8 +12,10 @@ import org.bukkit.plugin.java.JavaPlugin
  */
 class BukkitPartyClient : JavaPlugin() {
     
-    override fun onEnable() {
+    val messenger = PluginMessenger("Party")
     
+    override fun onEnable() {
+        bukkitClient = this
     }
     
     override fun onDisable() {

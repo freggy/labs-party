@@ -16,6 +16,8 @@ var server: PartyServer? = null
 
 val currentParties = HashMap<UUID, AtlantisParty>()
 
+val pendingInvites = HashMap<UUID, InviteInfo>()
+
 
 /**
  * Created by Yannic Rieger on 06.09.2017.
