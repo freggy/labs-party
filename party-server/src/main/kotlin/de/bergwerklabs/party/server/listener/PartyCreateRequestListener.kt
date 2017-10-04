@@ -9,6 +9,7 @@ import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRespon
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.server.AtlantisPackageListener
 import de.bergwerklabs.party.server.currentParties
+import de.bergwerklabs.party.server.pendingInvites
 import java.util.*
 
 /**
@@ -30,6 +31,7 @@ class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPac
         logger.info("Creating party ${pkg.partyId} with member count of ${pkg.members.size}")
         val partyId = this.determineId()
         currentParties.put(partyId, AtlantisParty(pkg.owner, pkg.members, partyId))
+        pendingInvites[pkg.partyId] = mutableListOf()
         AtlantisPackageUtil.sendResponse(PartyCreateResponsePackage(partyId, PartyCreateResponseType.SUCCESS), pkg)
     }
     
