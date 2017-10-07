@@ -4,12 +4,9 @@ import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.PartyChangeOwnerPackage
 import de.bergwerklabs.atlantis.api.party.packages.PartyDisbandPackage
 import de.bergwerklabs.atlantis.api.party.packages.PartySavePackage
-import de.bergwerklabs.atlantis.api.party.packages.invite.InviteStatus
-import de.bergwerklabs.atlantis.api.party.packages.invite.PartyPlayerInviteRequestPackage
-import de.bergwerklabs.atlantis.api.party.packages.invite.PartyPlayerInviteResponsePackage
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePackage
-import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageCallback
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.common.invitePlayerToParty
@@ -88,7 +85,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
      */
     override fun invite(player: UUID): PartyInviteStatus {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
-        return invitePlayerToParty(PartyPlayerInviteRequestPackage(this.id, player))
+        return invitePlayerToParty(PartyClientInviteRequestPackage(this.id, player))
     }
     
     /**
@@ -100,13 +97,13 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
     override fun invite(player: String): PartyInviteStatus {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         
-        val request = PartyPlayerInviteRequestPackage(this.id, player)
+        val request = PartyClientInviteRequestPackage(this.id, player)
         request.addRemoteTask(RemoteTaskSeedData(
                 "de.bergwerklabs.atlantis.api.remote.impl.ResolvePlayerUuidTask",
                 "de.bergwerklabs.atlantis.api.remote.impl.ReadPlayerNameTask",
                 "de.bergwerklabs.atlantis.api.remote.impl.WritePlayerUuidTask"
         ))
-        return invitePlayerToParty(PartyPlayerInviteRequestPackage(this.id, player))
+        return invitePlayerToParty(request)
     }
     
     /**

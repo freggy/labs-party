@@ -3,14 +3,15 @@ package de.bergwerklabs.party.server.listener
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRequestPackage
-
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponseType
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.server.AtlantisPackageListener
 import de.bergwerklabs.party.server.currentParties
 import de.bergwerklabs.party.server.pendingInvites
+
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Created by Yannic Rieger on 21.09.2017.
@@ -31,7 +32,7 @@ class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPac
         logger.info("Creating party ${pkg.partyId} with member count of ${pkg.members.size}")
         val partyId = this.determineId()
         currentParties.put(partyId, AtlantisParty(pkg.owner, pkg.members, partyId))
-        pendingInvites[pkg.partyId] = mutableListOf()
+        pendingInvites[pkg.partyId] = CopyOnWriteArrayList()
         AtlantisPackageUtil.sendResponse(PartyCreateResponsePackage(partyId, PartyCreateResponseType.SUCCESS), pkg)
     }
     

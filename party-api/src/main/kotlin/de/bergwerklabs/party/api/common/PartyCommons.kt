@@ -6,8 +6,8 @@ import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRespon
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.InviteStatus
-import de.bergwerklabs.atlantis.api.party.packages.invite.PartyPlayerInviteRequestPackage
-import de.bergwerklabs.atlantis.api.party.packages.invite.PartyPlayerInviteResponsePackage
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteRequestPackage
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePackage
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyCreateResult
@@ -45,15 +45,17 @@ internal fun tryPartyCreation(owner: UUID, members: List<UUID>): PartyCreateResu
 }
 
 /**
- * Sends a [PartyPlayerInviteRequestPackage] and waits until the response is present.
+ * Sends a [PartyClientInviteRequestPackage] and waits until the response is present.
  *
  * @param request party invite request package
  */
-internal fun invitePlayerToParty(request: PartyPlayerInviteRequestPackage): PartyInviteStatus {
-    val response = AtlantisPackageUtil.sendPackageWithFuture<PartyPlayerInviteResponsePackage>(request).get()
+internal fun invitePlayerToParty(request: PartyClientInviteRequestPackage): PartyInviteStatus {
+    val response = AtlantisPackageUtil.sendPackageWithFuture<PartyServerInviteResponsePackage>(request).get()
     return when (response.status) {
-        InviteStatus.ACCEPTED -> PartyInviteStatus.ACCEPTED
-        InviteStatus.DENIED   -> PartyInviteStatus.DENIED
-        InviteStatus.EXPIRED  -> PartyInviteStatus.EXPIRED
+        InviteStatus.ACCEPTED          -> PartyInviteStatus.ACCEPTED
+        InviteStatus.DENIED            -> PartyInviteStatus.DENIED
+        InviteStatus.EXPIRED           -> PartyInviteStatus.EXPIRED
+        InviteStatus.PARTY_FULL        -> PartyInviteStatus.PARTY_FULL
+        InviteStatus.PARTY_NOT_PRESENT -> PartyInviteStatus.PARTY_NOT_PRESENT
     }
 }
