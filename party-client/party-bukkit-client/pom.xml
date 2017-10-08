@@ -25,13 +25,13 @@
         </dependency>
         <dependency>
             <groupId>de.bergwerklabs.framework</groupId>
-            <artifactId>labs-framework-spigot-commons</artifactId>
+            <artifactId>spigot-commons</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>de.bergwerklabs.framework</groupId>
-            <artifactId>labs-framework-spigot-chat-commons</artifactId>
+            <artifactId>chat-commons</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>

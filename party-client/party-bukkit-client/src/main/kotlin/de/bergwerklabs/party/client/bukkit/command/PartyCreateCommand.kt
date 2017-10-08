@@ -8,6 +8,7 @@ import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.client.bukkit.bukkitClient
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.Sound
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -35,23 +36,27 @@ class PartyCreateCommand : ChildCommand {
             val result = PartyApi.createParty(sender.uniqueId)
             when {
                 result.status == PartyCreateStatus.SUCCESS -> {
-                    bukkitClient!!.messenger.message("${ChatColor.GREEN}Party wurde erflogreich erstellt.", sender)
+                    bukkitClient!!.messenger.message("§aParty wurde erflogreich erstellt.", sender)
                     bukkitClient!!.messenger.message(result.party.get().toString(), sender)
                     this.sendPartyInvites(args, result.party.get())
                 }
                 result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT -> {
-                    // TODO: message player.
+                    errorMessage(sender, 4) // TODO: insert fitting value
                 }
                 result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_PREMIUM -> {
-                    // TODO: message player
+                    errorMessage(sender, 4) // TODO: insert fitting value
                 }
             }
         }
-        return false
+        return true
     }
     
     /**
+     * Sends party invites to players.
      *
+     * @param potentialIds array containing potential player names.
+     * @param party        party to invite them to.
+     * @return             [List] containing the [UUID]s of the players.
      */
     private fun sendPartyInvites(potentialIds: Array<out String>?, party: Party): List<UUID> {
         potentialIds?.forEach { pId ->
@@ -67,7 +72,9 @@ class PartyCreateCommand : ChildCommand {
     }
     
     /**
+     * Executes actions based on the [PartyInviteStatus].
      *
+     * @param inviteStatus status of the invitation.
      */
     private fun handleStatus(inviteStatus: PartyInviteStatus) {
         when (inviteStatus) {
@@ -75,5 +82,16 @@ class PartyCreateCommand : ChildCommand {
             PartyInviteStatus.DENIED   -> bukkitClient!!.messenger.message("${ChatColor.RED}DENIED", player)
             PartyInviteStatus.EXPIRED  -> bukkitClient!!.messenger.message("${ChatColor.LIGHT_PURPLE}EXPIRED", player)
         }
+    }
+    
+    /**
+     * Displays the error message and plays a sound.
+     *
+     * @param player player to play the sound to (Sound.NOTE_BASS, 1F, 100F).
+     * @param count  maximum party player count.
+     */
+    private fun errorMessage(player: Player, count: Int) {
+        bukkitClient!!.messenger.message("§cDu kannst maximal §b$count Spieler einladen.", player)
+        player.playSound(player.eyeLocation, Sound.NOTE_BASS, 1F, 100F)
     }
 }
