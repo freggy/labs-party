@@ -5,6 +5,7 @@ import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteRespo
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePackage
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.server.AtlantisPackageListener
+import de.bergwerklabs.party.server.packageService
 import de.bergwerklabs.party.server.pendingInvites
 
 /**
@@ -20,10 +21,10 @@ class PartyInviteClientResponseListener : AtlantisPackageListener<PartyClientInv
         val party = pendingInvites[pkg.partyId]
         if (party != null) {
             if (party.any { inviteInfo -> inviteInfo.player == pkg.player }) { // check if invite is not expired.
-                AtlantisPackageUtil.sendPackage(PartyServerInviteResponsePackage(pkg.partyId, pkg.status, pkg.player))
+                packageService.sendPackage(PartyServerInviteResponsePackage(pkg.partyId, pkg.status, pkg.player))
             }
-            else AtlantisPackageUtil.sendPackage(PartyServerInviteResponsePackage(pkg.partyId, InviteStatus.EXPIRED, pkg.player))
+            else packageService.sendPackage(PartyServerInviteResponsePackage(pkg.partyId, InviteStatus.EXPIRED, pkg.player))
         }
-        else AtlantisPackageUtil.sendPackage(PartyServerInviteResponsePackage(pkg.partyId, InviteStatus.PARTY_NOT_PRESENT, pkg.player))
+        else packageService.sendPackage(PartyServerInviteResponsePackage(pkg.partyId, InviteStatus.PARTY_NOT_PRESENT, pkg.player))
     }
 }

@@ -4,8 +4,10 @@ import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyCreateStatus
+import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.client.bukkit.bukkitClient
+import de.bergwerklabs.party.client.bukkit.common.handlePartyInviteResponse
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Sound
@@ -13,6 +15,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import java.util.*
+import java.util.function.Consumer
 
 /**
  * Created by Yannic Rieger on 03.10.2017.
@@ -37,7 +40,6 @@ class PartyCreateCommand : ChildCommand {
             when {
                 result.status == PartyCreateStatus.SUCCESS -> {
                     bukkitClient!!.messenger.message("§aParty wurde erflogreich erstellt.", sender)
-                    bukkitClient!!.messenger.message(result.party.get().toString(), sender)
                     this.sendPartyInvites(args, result.party.get())
                 }
                 result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT -> {
@@ -64,24 +66,11 @@ class PartyCreateCommand : ChildCommand {
             // It returns null if the player is not on the server.
             val uuid = Bukkit.getServer().getPlayer(pId)?.uniqueId
             if (uuid == null) {
-                this.handleStatus(party.invite(pId))
+               party.invite(pId, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
             }
-            else this.handleStatus(party.invite(uuid))
+            else party.invite(uuid, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
         }
         return listOf()
-    }
-    
-    /**
-     * Executes actions based on the [PartyInviteStatus].
-     *
-     * @param inviteStatus status of the invitation.
-     */
-    private fun handleStatus(inviteStatus: PartyInviteStatus) {
-        when (inviteStatus) {
-            PartyInviteStatus.ACCEPTED -> bukkitClient!!.messenger.message("${ChatColor.GREEN}ACCEPTED", player)
-            PartyInviteStatus.DENIED   -> bukkitClient!!.messenger.message("${ChatColor.RED}DENIED", player)
-            PartyInviteStatus.EXPIRED  -> bukkitClient!!.messenger.message("${ChatColor.LIGHT_PURPLE}EXPIRED", player)
-        }
     }
     
     /**

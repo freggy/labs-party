@@ -5,13 +5,16 @@ import de.bergwerklabs.atlantis.api.party.packages.PartyChangeOwnerPackage
 import de.bergwerklabs.atlantis.api.party.packages.PartyDisbandPackage
 import de.bergwerklabs.atlantis.api.party.packages.PartySavePackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteRequestPackage
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePackage
+import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageCallback
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.api.Party
-import de.bergwerklabs.party.api.common.invitePlayerToParty
+import de.bergwerklabs.party.api.common.wrapPartyInviteResponse
 import remote.base.RemoteTaskSeedData
 import java.util.*
+import java.util.function.Consumer
 import kotlin.collections.HashSet
 
 /**
@@ -83,9 +86,12 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
      * @param player [UUID] of the player to invite.
      * @return       the [PartyInviteStatus]
      */
-    override fun invite(player: UUID): PartyInviteStatus {
+    override fun invite(player: UUID, sender: UUID, callback: Consumer<PartyInviteResponse>) {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
-        return invitePlayerToParty(PartyClientInviteRequestPackage(this.id, player))
+        
+        AtlantisPackageUtil.sendPackage(PartyClientInviteRequestPackage(this.id, player, sender), AtlantisPackageCallback { pkg ->
+            callback.accept(wrapPartyInviteResponse(pkg as PartyServerInviteResponsePackage))
+        })
     }
     
     /**
@@ -94,16 +100,20 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
      * @param player name of the player to invite.
      * @return       the [PartyInviteStatus]
      */
-    override fun invite(player: String): PartyInviteStatus {
+    override fun invite(player: String, sender: UUID, callback: Consumer<PartyInviteResponse>) {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         
-        val request = PartyClientInviteRequestPackage(this.id, player)
+        val request = PartyClientInviteRequestPackage(this.id, player, sender)
         request.addRemoteTask(RemoteTaskSeedData(
                 "de.bergwerklabs.atlantis.api.remote.impl.ResolvePlayerUuidTask",
                 "de.bergwerklabs.atlantis.api.remote.impl.ReadPlayerNameTask",
                 "de.bergwerklabs.atlantis.api.remote.impl.WritePlayerUuidTask"
         ))
-        return invitePlayerToParty(request)
+        
+        AtlantisPackageUtil.sendPackage(request, AtlantisPackageCallback { pkg ->
+            callback.accept(wrapPartyInviteResponse(pkg as PartyServerInviteResponsePackage))
+        })
+        
     }
     
     /**

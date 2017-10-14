@@ -1,9 +1,11 @@
 package de.bergwerklabs.party.api
 
+import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
+import java.util.function.Consumer
 
 /**
  * Created by Yannic Rieger on 07.09.2017.
@@ -58,18 +60,20 @@ interface Party {
     /**
      * Invites a player to a party.
      *
-     * @param  player [UUID] of the player
-     * @return        the [PartyInviteStatus]
+     * @param  player   [UUID] of the player
+     * @param  sender
+     * @param  callback callback to execute when the packet is received.
      */
-    fun invite(player: UUID): PartyInviteStatus
+    fun invite(player: UUID, sender: UUID,  callback: Consumer<PartyInviteResponse>)
     
     /**
      * Invites a player to a party.
      *
-     * @param player name of the player
-     * @return       the [PartyInviteStatus]
+     * @param player   name of the player
+     * @param sender
+     * @param callback callback to execute when the packet is received.
      */
-    fun invite(player: String): PartyInviteStatus
+    fun invite(player: String, sender: UUID, callback: Consumer<PartyInviteResponse>)
     
     /**
      * Saves the party.
