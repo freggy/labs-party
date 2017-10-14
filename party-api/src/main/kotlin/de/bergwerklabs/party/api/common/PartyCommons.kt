@@ -63,5 +63,5 @@ internal fun wrapPartyInviteResponse(response: PartyServerInviteResponsePackage)
         InviteStatus.PARTY_FULL        -> PartyInviteStatus.PARTY_FULL
         InviteStatus.PARTY_NOT_PRESENT -> PartyInviteStatus.PARTY_NOT_PRESENT
     }
-    return PartyInviteResponse(response.playerName, response.playerUuid, status, response.partyId)
+    return PartyInviteResponse(response.responder, status, response.partyId)
 }

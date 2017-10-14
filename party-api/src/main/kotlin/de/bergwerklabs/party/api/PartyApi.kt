@@ -1,9 +1,17 @@
 package de.bergwerklabs.party.api
 
+import de.bergwerklabs.atlantis.api.party.packages.invite.InviteStatus
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteResponsePackage
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteRequestPackage
+import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.api.common.sendInfoPacketAndGetResponse
 import de.bergwerklabs.party.api.common.tryPartyCreation
+import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
+
+
+internal val packageService = AtlantisPackageService()
 
 /**
  * Created by Yannic Rieger on 06.09.2017.
@@ -88,5 +96,17 @@ class PartyApi {
          */
         @JvmStatic
         fun createParty(owner: UUID, vararg members: UUID): PartyCreateResult = tryPartyCreation(owner, Arrays.asList(*members))
+    
+        /**
+         *
+         */
+        fun respondToInvite(status: PartyInviteStatus, respondingPlayer: UUID, request: PartyServerInviteRequestPackage) {
+            val resolution = when (status) {
+                PartyInviteStatus.ACCEPTED -> InviteStatus.ACCEPTED
+                PartyInviteStatus.DENIED   -> InviteStatus.DENIED
+                else                       -> InviteStatus.DENIED
+            }
+            packageService.sendResponse(PartyClientInviteResponsePackage(request.partyId, respondingPlayer, request.initalSender, resolution), request)
+        }
     }
 }

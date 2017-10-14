@@ -95,28 +95,6 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
     }
     
     /**
-     * Invites a player to a party.
-     *
-     * @param player name of the player to invite.
-     * @return       the [PartyInviteStatus]
-     */
-    override fun invite(player: String, sender: UUID, callback: Consumer<PartyInviteResponse>) {
-        if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
-        
-        val request = PartyClientInviteRequestPackage(this.id, player, sender)
-        request.addRemoteTask(RemoteTaskSeedData(
-                "de.bergwerklabs.atlantis.api.remote.impl.ResolvePlayerUuidTask",
-                "de.bergwerklabs.atlantis.api.remote.impl.ReadPlayerNameTask",
-                "de.bergwerklabs.atlantis.api.remote.impl.WritePlayerUuidTask"
-        ))
-        
-        AtlantisPackageUtil.sendPackage(request, AtlantisPackageCallback { pkg ->
-            callback.accept(wrapPartyInviteResponse(pkg as PartyServerInviteResponsePackage))
-        })
-        
-    }
-    
-    /**
      * Removes a member from the party.
      *
      * If member was the owner of the party, the owner will be changed by calling [PartyWrapper.changeOwner].

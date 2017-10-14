@@ -67,15 +67,6 @@ interface Party {
     fun invite(player: UUID, sender: UUID,  callback: Consumer<PartyInviteResponse>)
     
     /**
-     * Invites a player to a party.
-     *
-     * @param player   name of the player
-     * @param sender
-     * @param callback callback to execute when the packet is received.
-     */
-    fun invite(player: String, sender: UUID, callback: Consumer<PartyInviteResponse>)
-    
-    /**
      * Saves the party.
      */
     fun save()

@@ -7,4 +7,4 @@ import java.util.*
  * <p>
  * @author Yannic Rieger
  */
-data class PartyInviteResponse(val playerName: String, val playerUuid: UUID, val status: PartyInviteStatus, val partyId: UUID)
+data class PartyInviteResponse(val playerUuid: UUID, val status: PartyInviteStatus, val partyId: UUID)

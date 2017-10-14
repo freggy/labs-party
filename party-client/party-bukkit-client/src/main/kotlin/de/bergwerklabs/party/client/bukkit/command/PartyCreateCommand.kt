@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.client.bukkit.command
 
+import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
@@ -58,19 +59,19 @@ class PartyCreateCommand : ChildCommand {
      *
      * @param potentialIds array containing potential player names.
      * @param party        party to invite them to.
-     * @return             [List] containing the [UUID]s of the players.
      */
-    private fun sendPartyInvites(potentialIds: Array<out String>?, party: Party): List<UUID> {
+    private fun sendPartyInvites(potentialIds: Array<out String>?, party: Party) {
         potentialIds?.forEach { pId ->
             // If the invited player is on the same server as the party client we can use the Bukkit method to resolve the name to a UUID.
             // It returns null if the player is not on the server.
             val uuid = Bukkit.getServer().getPlayer(pId)?.uniqueId
             if (uuid == null) {
-               party.invite(pId, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
+                PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
+                    party.invite(id, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
+                })
             }
             else party.invite(uuid, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
         }
-        return listOf()
     }
     
     /**

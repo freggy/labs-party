@@ -51,7 +51,7 @@ class PartyServer {
     
             packageService.addListener(PartyUpdatePackage::class.java,        { pkg -> PartyUpdatePackageListener().onResponse(pkg) })
             packageService.addListener(PartyChangeOwnerPackage::class.java,   { pkg -> PartyOwnerChangedListener().onResponse(pkg) })
-            packageService.addListener(PartyCreateRequestPackage::class.java, { pkg -> println("hello"); PartyCreateRequestListener().onResponse(pkg) })
+            packageService.addListener(PartyCreateRequestPackage::class.java, { pkg -> PartyCreateRequestListener().onResponse(pkg) })
             packageService.addListener(PartySavePackage::class.java,          { pkg -> PartySavePackageListener().onResponse(pkg) })
             packageService.addListener(PartyDisbandPackage::class.java,       { pkg -> PartyDisbandListener().onResponse(pkg) })
             packageService.addListener(PartyInfoRequestPackage::class.java,   { pkg -> PartyInfoRequestListener().onResponse(pkg) })
