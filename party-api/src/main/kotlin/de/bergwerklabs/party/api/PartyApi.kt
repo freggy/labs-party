@@ -1,8 +1,11 @@
 package de.bergwerklabs.party.api
 
+import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePackage
+import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.InviteStatus
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteRequestPackage
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePackage
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.api.common.sendInfoPacketAndGetResponse
 import de.bergwerklabs.party.api.common.tryPartyCreation
@@ -11,7 +14,10 @@ import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
 
 
-internal val packageService = AtlantisPackageService()
+internal val packageService = AtlantisPackageService(PartyInfoResponsePackage::class.java,
+                                                     PartyCreateResponsePackage::class.java,
+                                                     PartyClientInviteResponsePackage::class.java,
+                                                     PartyServerInviteResponsePackage::class.java)
 
 /**
  * Created by Yannic Rieger on 06.09.2017.

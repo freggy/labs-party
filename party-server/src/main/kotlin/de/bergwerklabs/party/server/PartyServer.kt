@@ -7,6 +7,8 @@ import de.bergwerklabs.atlantis.api.party.packages.PartyDisbandPackage
 import de.bergwerklabs.atlantis.api.party.packages.PartySavePackage
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoRequestPackage
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteRequestPackage
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePackage
@@ -28,8 +30,9 @@ val packageService = AtlantisPackageService(PartyUpdatePackage::class.java,
         PartySavePackage::class.java,
         PartyDisbandPackage::class.java,
         PartyInfoRequestPackage::class.java,
-        PartyServerInviteResponsePackage::class.java,
-        PartyServerInviteRequestPackage::class.java)
+        PartyServerInviteRequestPackage::class.java,
+        PartyClientInviteRequestPackage::class.java,
+        PartyClientInviteResponsePackage::class.java)
 
 /**
  * Created by Yannic Rieger on 06.09.2017.
@@ -49,14 +52,16 @@ class PartyServer {
             logger.info("Starting party server instance...")
             logger.info("Adding listeners...")
     
-            packageService.addListener(PartyUpdatePackage::class.java,        { pkg -> PartyUpdatePackageListener().onResponse(pkg) })
-            packageService.addListener(PartyChangeOwnerPackage::class.java,   { pkg -> PartyOwnerChangedListener().onResponse(pkg) })
-            packageService.addListener(PartyCreateRequestPackage::class.java, { pkg -> PartyCreateRequestListener().onResponse(pkg) })
-            packageService.addListener(PartySavePackage::class.java,          { pkg -> PartySavePackageListener().onResponse(pkg) })
-            packageService.addListener(PartyDisbandPackage::class.java,       { pkg -> PartyDisbandListener().onResponse(pkg) })
-            packageService.addListener(PartyInfoRequestPackage::class.java,   { pkg -> PartyInfoRequestListener().onResponse(pkg) })
+            packageService.addListener(PartyUpdatePackage::class.java,              { pkg -> PartyUpdatePackageListener().onResponse(pkg) })
+            packageService.addListener(PartyChangeOwnerPackage::class.java,         { pkg -> PartyOwnerChangedListener().onResponse(pkg) })
+            packageService.addListener(PartyCreateRequestPackage::class.java,       { pkg -> PartyCreateRequestListener().onResponse(pkg) })
+            packageService.addListener(PartySavePackage::class.java,                { pkg -> PartySavePackageListener().onResponse(pkg) })
+            packageService.addListener(PartyDisbandPackage::class.java,             { pkg -> PartyDisbandListener().onResponse(pkg) })
+            packageService.addListener(PartyInfoRequestPackage::class.java,         { pkg -> PartyInfoRequestListener().onResponse(pkg) })
+            packageService.addListener(PartyClientInviteRequestPackage::class.java, { pkg -> PartyInviteRequestListener().onResponse(pkg) })
     
             logger.info("Starting removal of pending party invites every 30 seconds.")
+            /*
             Timer().scheduleAtFixedRate(timerTask {
                 pendingInvites.entries.forEach { (partyId, infos) ->
                     // Remove pending invites after 30 seconds.
@@ -68,7 +73,7 @@ class PartyServer {
                         }
                     }
                 }
-            }, 20, 1000)
+            }, 20, 1000) */
         }
     }
 }

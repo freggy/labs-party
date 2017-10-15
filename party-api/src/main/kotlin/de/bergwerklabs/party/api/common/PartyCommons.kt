@@ -6,12 +6,10 @@ import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRespon
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.InviteStatus
-import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePackage
-import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
-import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyCreateResult
+import de.bergwerklabs.party.api.packageService
 import de.bergwerklabs.party.api.wrapper.PartyCreateStatus
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
@@ -24,7 +22,7 @@ import java.util.*
  * @param player player to get the info from.
  */
 internal fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePackage {
-    val future = AtlantisPackageUtil.sendPackageWithFuture<PartyInfoResponsePackage>(PartyInfoRequestPackage(player))
+    val future = packageService.sendRequestWithFuture(PartyInfoRequestPackage(player), PartyInfoResponsePackage::class.java)
     return future.get()
 }
 
@@ -36,18 +34,14 @@ internal fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePackag
  * @return               a [PartyCreateResult]
  */
 internal fun tryPartyCreation(owner: UUID, members: List<UUID>): PartyCreateResult {
-    
-    AtlantisPackageService().sendPackage((PartyCreateRequestPackage(owner, members)))
-    
-    //val future = AtlantisPackageUtil.sendPackageWithFuture<PartyCreateResponsePackage>(PartyCreateRequestPackage(owner, members))
-    //val response = future.get()
-    //return when {
-        //response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT)
-        //response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_PREMIUM -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_PREMIUM)
-        //response.type == PartyCreateResponseType.SUCCESS                       -> PartyCreateResult(Optional.of(PartyWrapper(response.partyId, owner, members.toMutableList())), PartyCreateStatus.SUCCESS)
-        //else                                                                   -> PartyCreateResult(Optional.empty(), PartyCreateStatus.UNKNOWN_ERROR)
-    //}
-    return PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_PREMIUM)
+    val future = packageService.sendRequestWithFuture(PartyCreateRequestPackage(owner, members), PartyCreateResponsePackage::class.java)
+    val response = future.get()
+    return when {
+        response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT)
+        response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_PREMIUM -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_PREMIUM)
+        response.type == PartyCreateResponseType.SUCCESS                       -> PartyCreateResult(Optional.of(PartyWrapper(response.partyId, owner, members.toMutableList())), PartyCreateStatus.SUCCESS)
+        else                                                                   -> PartyCreateResult(Optional.empty(), PartyCreateStatus.UNKNOWN_ERROR)
+    }
 }
 
 /**

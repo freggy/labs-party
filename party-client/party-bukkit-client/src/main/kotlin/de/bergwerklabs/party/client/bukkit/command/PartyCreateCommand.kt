@@ -64,13 +64,13 @@ class PartyCreateCommand : ChildCommand {
         potentialIds?.forEach { pId ->
             // If the invited player is on the same server as the party client we can use the Bukkit method to resolve the name to a UUID.
             // It returns null if the player is not on the server.
-            val uuid = Bukkit.getServer().getPlayer(pId)?.uniqueId
-            if (uuid == null) {
+            val invited = Bukkit.getServer().getPlayer(pId)
+            if (invited == null) {
                 PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
                     party.invite(id, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
                 })
             }
-            else party.invite(uuid, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
+            else party.invite(invited.uniqueId, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
         }
     }
     

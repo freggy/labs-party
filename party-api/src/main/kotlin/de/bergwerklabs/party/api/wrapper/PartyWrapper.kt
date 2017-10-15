@@ -8,11 +8,10 @@ import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteReque
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePackage
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePackage
-import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageCallback
-import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageUtil
+import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.common.wrapPartyInviteResponse
-import remote.base.RemoteTaskSeedData
+import de.bergwerklabs.party.api.packageService
 import java.util.*
 import java.util.function.Consumer
 import kotlin.collections.HashSet
@@ -63,7 +62,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
     override fun disband() {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         this.disbanded = true
-        AtlantisPackageUtil.sendPackage(PartyDisbandPackage(this.id))
+        packageService.sendPackage(PartyDisbandPackage(this.id))
     }
     
     /**
@@ -73,7 +72,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
      */
     override fun changeOwner(newOwner: UUID) {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
-        AtlantisPackageUtil.sendPackage(PartyChangeOwnerPackage(id, this.owner, newOwner))
+        packageService.sendPackage(PartyChangeOwnerPackage(id, this.owner, newOwner))
         this.membersList.remove(this.owner)
         this.owner = newOwner
         this.membersList.add(newOwner)
@@ -88,8 +87,8 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
      */
     override fun invite(player: UUID, sender: UUID, callback: Consumer<PartyInviteResponse>) {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
-        
-        AtlantisPackageUtil.sendPackage(PartyClientInviteRequestPackage(this.id, player, sender), AtlantisPackageCallback { pkg ->
+    
+        packageService.sendPackage(PartyClientInviteRequestPackage(this.id, sender, player), PartyServerInviteResponsePackage::class.java, AtlantisPackageService.Callback { pkg ->
             callback.accept(wrapPartyInviteResponse(pkg as PartyServerInviteResponsePackage))
         })
     }
@@ -116,8 +115,8 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
             PartyUpdateAction.PLAYER_LEAVE -> PartyUpdate.PLAYER_LEAVE
             PartyUpdateAction.PLAYER_KICK  -> PartyUpdate.PLAYER_KICK
         }
-        
-        AtlantisPackageUtil.sendPackage(PartyUpdatePackage(this.id, member, status))
+    
+        packageService.sendPackage(PartyUpdatePackage(this.id, member, status))
     }
     
     /**
@@ -125,6 +124,6 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
      */
     override fun save() {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
-        AtlantisPackageUtil.sendPackage(PartySavePackage(this.id))
+        packageService.sendPackage(PartySavePackage(this.id))
     }
 }
