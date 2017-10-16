@@ -11,7 +11,6 @@ import org.bukkit.entity.Player
  * Created by Yannic Rieger on 30.09.2017.
  *
  * Command to disband a party.
- *
  * Command usage: /party disband
  *
  * @author Yannic Rieger

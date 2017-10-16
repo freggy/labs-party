@@ -14,6 +14,8 @@ import org.bukkit.entity.Player
 /**
  * Created by Yannic Rieger on 08.10.2017.
  *
+ * Sends a text message to all party members.
+ *
  * @author Yannic Rieger
  */
 class PartyChatCommand : CommandExecutor {
@@ -26,11 +28,11 @@ class PartyChatCommand : CommandExecutor {
                     val party = optional.get()
                     party.getMembers().forEach { uuid ->
                         val name = "" // TODO: resolve uuid
-                        PluginMessages.sendPluginMessage(bukkitClient, PluginMessageOption.MESSAGE, name, "${bukkitClient!!.messenger.prefix}§a${sender.displayName}§f: ${StringUtils.join(args, " ")}")
+                        PluginMessages.sendPluginMessage(bukkitClient, PluginMessageOption.MESSAGE, name, "${bukkitClient!!.messenger.prefix}ï¿½a${sender.displayName}ï¿½f: ${StringUtils.join(args, " ")}")
                     }
                 }
                 else {
-                    bukkitClient!!.messenger.message("§cDu bist in keiner Party.", sender)
+                    bukkitClient!!.messenger.message("ï¿½cDu bist in keiner Party.", sender)
                     sender.playSound(sender.eyeLocation, Sound.NOTE_BASS, 1F, 100F)
                 }
             }

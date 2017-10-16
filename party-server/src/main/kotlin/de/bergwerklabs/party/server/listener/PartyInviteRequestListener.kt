@@ -9,8 +9,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 /**
  * Created by Yannic Rieger on 04.10.2017.
  *
- * Listens for the [PartyClientInviteRequestPackage]
- *
  * @author Yannic Rieger
  */
 class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequestPackage>() {

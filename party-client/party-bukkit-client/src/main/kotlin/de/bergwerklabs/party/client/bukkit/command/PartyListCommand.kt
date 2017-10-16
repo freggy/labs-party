@@ -10,7 +10,9 @@ import org.bukkit.entity.Player
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
- * <p>
+ *
+ * Lists the player currently in a party.
+ *
  * @author Yannic Rieger
  */
 class PartyListCommand : ChildCommand {

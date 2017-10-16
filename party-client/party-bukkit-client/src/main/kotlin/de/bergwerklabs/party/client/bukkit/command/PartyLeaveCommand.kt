@@ -1,6 +1,5 @@
 package de.bergwerklabs.party.client.bukkit.command
 
-import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
@@ -11,7 +10,9 @@ import org.bukkit.entity.Player
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
- * <p>
+ *
+ * A player executing this command will leave the party they're in.
+ *
  * @author Yannic Rieger
  */
 class PartyLeaveCommand : ChildCommand {

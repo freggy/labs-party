@@ -6,7 +6,9 @@ import org.bukkit.command.CommandSender
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
- * <p>
+ * 
+ * Saves a party.
+ *
  * @author Yannic Rieger
  */
 class PartySaveCommand : ChildCommand {

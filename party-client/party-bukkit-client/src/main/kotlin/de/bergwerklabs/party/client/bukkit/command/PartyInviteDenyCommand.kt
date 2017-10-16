@@ -10,7 +10,9 @@ import org.bukkit.entity.Player
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
- * <p>
+ *
+ * Denies a party invitation.
+ *
  * @author Yannic Rieger
  */
 class PartyInviteDenyCommand : ChildCommand {

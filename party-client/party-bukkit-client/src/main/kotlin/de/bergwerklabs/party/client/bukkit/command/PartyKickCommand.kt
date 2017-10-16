@@ -11,7 +11,9 @@ import org.bukkit.entity.Player
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
- * <p>
+ *
+ * Kicks a player from the party.
+ *
  * @author Yannic Rieger
  */
 class PartyKickCommand : ChildCommand {
