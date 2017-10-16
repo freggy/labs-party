@@ -57,6 +57,11 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
     override fun isDisbanded(): Boolean = disbanded
     
     /**
+     * Gets the owner of this party.
+     */
+    override fun getPartyOwner(): UUID = owner
+    
+    /**
      * Disbands the party.
      */
     override fun disband() {

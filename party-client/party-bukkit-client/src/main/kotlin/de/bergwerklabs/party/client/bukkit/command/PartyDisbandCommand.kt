@@ -29,15 +29,11 @@ class PartyDisbandCommand : ChildCommand {
                 val party = optional.get()
                 if (party.isOwner(uuid)) {
                     party.disband()
-                    // TODO: send message to all party members
                 }
-                else {
-                    bukkitClient!!.messenger.message("§cUm eine Party aufzulösen, musst du Party-Leader sein.", sender)
-                }
+                else bukkitClient!!.messenger.message("Â§cUm eine Party aufzulï¿½sen, musst du Party-Leader sein.", sender)
             }
-            else {
-                bukkitClient!!.messenger.message("§cDu befindest dich zur Zeit in keiner Party.", sender)
-            }
+            else bukkitClient!!.messenger.message("Â§cDu befindest dich zur Zeit in keiner Party.", sender)
+            
         }
         return true
     }

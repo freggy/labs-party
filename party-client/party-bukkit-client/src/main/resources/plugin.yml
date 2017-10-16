@@ -3,7 +3,7 @@ main: de.bergwerklabs.party.client.bukkit.BukkitPartyClient
 version: 1.0
 author: freggy
 
-depend: [SpigotCommons, ChatCommons]
+depend: [SpigotCommons, SpigotChatCommons]
 
 commands:
     party:

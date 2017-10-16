@@ -1,6 +1,7 @@
 package de.bergwerklabs.party.client.bukkit.command
 
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.commons.spigot.chat.MessageUtil
 import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
@@ -9,6 +10,9 @@ import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.client.bukkit.bukkitClient
 import de.bergwerklabs.party.client.bukkit.common.handlePartyInviteResponse
+import mkremins.fanciful.FancyMessage
+import mkremins.fanciful.TextualComponent
+import net.md_5.bungee.api.chat.TextComponent
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Sound
@@ -37,10 +41,11 @@ class PartyCreateCommand : ChildCommand {
     override fun onCommand(sender: CommandSender?, command: Command?, label: String?, args: Array<out String>?): Boolean {
         if (sender is Player) {
             player = sender
+            
             val result = PartyApi.createParty(sender.uniqueId)
             when {
                 result.status == PartyCreateStatus.SUCCESS -> {
-                    bukkitClient!!.messenger.message("§aParty wurde erflogreich erstellt.", sender)
+                    bukkitClient!!.messenger.message("ï¿½aParty wurde erflogreich erstellt.", sender)
                     this.sendPartyInvites(args, result.party.get())
                 }
                 result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT -> {
@@ -53,6 +58,7 @@ class PartyCreateCommand : ChildCommand {
         }
         return true
     }
+    
     
     /**
      * Sends party invites to players.
@@ -81,7 +87,7 @@ class PartyCreateCommand : ChildCommand {
      * @param count  maximum party player count.
      */
     private fun errorMessage(player: Player, count: Int) {
-        bukkitClient!!.messenger.message("§cDu kannst maximal §b$count Spieler einladen.", player)
+        bukkitClient!!.messenger.message("ï¿½cDu kannst maximal ï¿½b$count Spieler einladen.", player)
         player.playSound(player.eyeLocation, Sound.NOTE_BASS, 1F, 100F)
     }
 }

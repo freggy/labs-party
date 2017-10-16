@@ -17,6 +17,11 @@ import java.util.function.Consumer
 interface Party {
     
     /**
+     * Gets the owner of the party.
+     */
+    fun getPartyOwner(): UUID
+    
+    /**
      * Gets a [Set] of [UUID]s representing the members of this party.
      */
     fun getMembers(): Set<UUID>

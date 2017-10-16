@@ -2,20 +2,22 @@ package de.bergwerklabs.party.client.bukkit
 
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePackage
+import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
+import de.bergwerklabs.commons.spigot.chat.MessageUtil
 import de.bergwerklabs.commons.spigot.chat.messenger.PluginMessenger
 import de.bergwerklabs.party.client.bukkit.command.PartyChatCommand
 import de.bergwerklabs.party.client.bukkit.command.PartyCreateCommand
 import de.bergwerklabs.party.client.bukkit.command.PartyParentCommand
+import mkremins.fanciful.FancyMessage
 import org.bukkit.Bukkit
+import org.bukkit.ChatColor
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.*
 
 internal var bukkitClient: BukkitPartyClient? = null
 internal val packageService: AtlantisPackageService = AtlantisPackageService(PartyServerInviteRequestPackage::class.java,
                                                                              PartyServerInviteResponsePackage::class.java)
-
-
 /**
  * Created by Yannic Rieger on 30.09.2017.
  * <p>
@@ -41,7 +43,24 @@ class BukkitPartyClient : JavaPlugin() {
     
         packageService.addListener(PartyServerInviteRequestPackage::class.java, { pkg ->
             Bukkit.getPlayer(pkg.responder).let {
-                it.sendMessage("DU HAST EINEN INVITE BEKOMMEN YAAAY!")
+                val initialSenderName = PlayerResolver.resolveUuidToName(pkg.initalSender).get()
+                
+                // nasty little workaround to get the fancy message centered as well.
+                val spaces = MessageUtil.getSpacesToCenter("§a[ANNEHMEN]§6 | §c[ABLEHNEN]")
+                val builder = StringBuilder()
+                for (i in 0..spaces) builder.append(" ")
+    
+                val message = FancyMessage("$builder§a[ANNEHMEN]").color(ChatColor.GREEN).command("/say ANNEHMEN")
+                        .then(" ❘ ").color(ChatColor.GOLD)
+                        .then("[ABLEHNEN]").color(ChatColor.RED).command("/say ABLEHNEN")
+    
+                MessageUtil.sendCenteredMessage(it, "§6§m-------§b Party-Einladung §6§m-------")
+                MessageUtil.sendCenteredMessage(it, " ")
+                MessageUtil.sendCenteredMessage(it, "§7Du hast eine Einladung von §a$initialSenderName §7erhalten.")
+                MessageUtil.sendCenteredMessage(it," ")
+                message.send(it)
+                MessageUtil.sendCenteredMessage(it," ")
+                MessageUtil.sendCenteredMessage(it, "§6§m--------------")
                 invitedFor[it.uniqueId] = pkg
             }
         })
