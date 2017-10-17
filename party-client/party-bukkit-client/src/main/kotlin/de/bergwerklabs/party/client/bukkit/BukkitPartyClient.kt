@@ -1,11 +1,15 @@
 package de.bergwerklabs.party.client.bukkit
 
+import de.bergwerklabs.atlantis.api.party.packages.PartySwitchServerPackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteRequestPackage
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePackage
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.commons.spigot.chat.MessageUtil
 import de.bergwerklabs.commons.spigot.chat.messenger.PluginMessenger
+import de.bergwerklabs.framework.commons.spigot.pluginmessage.PluginMessageOption
+import de.bergwerklabs.framework.commons.spigot.pluginmessage.PluginMessages
+import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.client.bukkit.command.PartyChatCommand
 import de.bergwerklabs.party.client.bukkit.command.PartyCreateCommand
 import de.bergwerklabs.party.client.bukkit.command.PartyParentCommand
@@ -17,7 +21,8 @@ import java.util.*
 
 internal var bukkitClient: BukkitPartyClient? = null
 internal val packageService: AtlantisPackageService = AtlantisPackageService(PartyServerInviteRequestPackage::class.java,
-                                                                             PartyServerInviteResponsePackage::class.java)
+                                                                             PartyServerInviteResponsePackage::class.java,
+                                                                             PartySwitchServerPackage::class.java)
 /**
  * Created by Yannic Rieger on 30.09.2017.
  * <p>
@@ -38,6 +43,18 @@ class BukkitPartyClient : JavaPlugin() {
             val player = Bukkit.getPlayer(pkg.initalSender)
             if (player != null) {
                 // TODO: send message
+            }
+        })
+        
+        packageService.addListener(PartySwitchServerPackage::class.java, { pkg ->
+            PartyApi.getParty(pkg.partyId).ifPresent {
+                it.getMembers().forEach { member ->
+                    val player = Bukkit.getPlayer(member)
+                    // only move players registered to this client
+                    if (player != null) {
+                        PluginMessages.sendPluginMessage(this, PluginMessageOption.MESSAGE, player.displayName, pkg.serverName)
+                    }
+                }
             }
         })
     
