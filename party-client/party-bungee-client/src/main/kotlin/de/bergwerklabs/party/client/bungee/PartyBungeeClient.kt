@@ -47,8 +47,16 @@ class PartyBungeeClient : Plugin(), Listener {
         PlayerResolver.resolveNameToUuid(player.name).ifPresent { uuid ->
             PartyApi.getParty(uuid).ifPresent {
                 if (it.isOwner(uuid)) {
-                    this.logger.info("Party owner switched the server, party members will be moved as well.")
-                    this.packageService.sendPackage(PartySwitchServerPackage(it.getPartyId(), event.target.name))
+                    val from = player.server.info.name
+                    val to = event.target.name
+                    
+                    val lobbyToGameserver = from.contains("lobby") && !to.contains("lobby")
+                    val gameserverToLobby = !from.contains("lobby") && to.contains("lobby")
+                    
+                    if (lobbyToGameserver || gameserverToLobby) {
+                        this.logger.info("Party owner switched the server, party members will be moved as well.")
+                        this.packageService.sendPackage(PartySwitchServerPackage(it.getPartyId(), event.target.name))
+                    }
                 }
             }
         }

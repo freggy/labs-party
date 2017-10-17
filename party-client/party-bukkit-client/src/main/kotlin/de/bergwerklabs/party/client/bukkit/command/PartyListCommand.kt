@@ -47,8 +47,8 @@ class PartyListCommand : ChildCommand {
         player.sendMessage("§6§m-----§b Party-Übersicht §6§m-----")
         party.getMembers().forEach { member ->
             val name = PlayerResolver.resolveUuidToName(member).get()
-            FancyMessage("✖").color(ChatColor.RED).command("/party kick $name")
-                    .then("☗").color(ChatColor.GREEN).command("/party promote $name")
+            FancyMessage("✖").color(ChatColor.RED).command("/party kick $name").formattedTooltip(FancyMessage("Entfernt $name von der Party"))
+                    .then("☗").color(ChatColor.GREEN).command("/party promote $name").formattedTooltip(FancyMessage("Befördert $name zun neuen Party-Owner."))
                     .then(" $name")
                     .send(player)
         }

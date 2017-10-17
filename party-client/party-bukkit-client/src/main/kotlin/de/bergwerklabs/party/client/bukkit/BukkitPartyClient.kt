@@ -58,9 +58,9 @@ class BukkitPartyClient : JavaPlugin() {
                 val builder = StringBuilder()
                 for (i in 0..spaces) builder.append(" ")
     
-                val message = FancyMessage("$builder§a[ANNEHMEN]").color(ChatColor.GREEN).command("/say ANNEHMEN")
+                val message = FancyMessage("$builder§a[ANNEHMEN]").color(ChatColor.GREEN).command("/party accept")
                         .then(" ❘ ").color(ChatColor.GOLD)
-                        .then("[ABLEHNEN]").color(ChatColor.RED).command("/say ABLEHNEN")
+                        .then("[ABLEHNEN]").color(ChatColor.RED).command("/party deny")
     
                 MessageUtil.sendCenteredMessage(it, "§6§m-------§b Party-Einladung §6§m-------")
                 MessageUtil.sendCenteredMessage(it, " ")
