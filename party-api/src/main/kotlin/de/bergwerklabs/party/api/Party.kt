@@ -1,7 +1,6 @@
 package de.bergwerklabs.party.api
 
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
-import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*

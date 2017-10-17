@@ -21,7 +21,6 @@ import java.util.*
 
 internal var bukkitClient: BukkitPartyClient? = null
 internal val packageService: AtlantisPackageService = AtlantisPackageService(PartyServerInviteRequestPackage::class.java,
-                                                                             PartyServerInviteResponsePackage::class.java,
                                                                              PartySwitchServerPackage::class.java)
 /**
  * Created by Yannic Rieger on 30.09.2017.
@@ -37,14 +36,6 @@ class BukkitPartyClient : JavaPlugin() {
         bukkitClient = this
         this.getCommand("party").executor = PartyParentCommand("party", PartyCreateCommand())
         this.getCommand("p").executor = PartyChatCommand()
-    
-    
-        packageService.addListener(PartyServerInviteResponsePackage::class.java, { pkg ->
-            val player = Bukkit.getPlayer(pkg.initalSender)
-            if (player != null) {
-                // TODO: send message
-            }
-        })
         
         packageService.addListener(PartySwitchServerPackage::class.java, { pkg ->
             PartyApi.getParty(pkg.partyId).ifPresent {
