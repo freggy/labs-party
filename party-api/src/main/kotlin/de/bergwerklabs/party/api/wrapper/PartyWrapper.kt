@@ -29,12 +29,17 @@ import kotlin.collections.HashSet
  */
 internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersList: MutableList<UUID>) : Party {
     
+    private var disbanded: Boolean = false
+    
     /**
      * @param party party object sent by Atlantis
      */
     constructor(party: AtlantisParty) : this(party.id, party.owner, party.members)
     
-    private var disbanded: Boolean = false
+    /**
+     * Gets the ID of this party.
+     */
+    override fun getPartyId(): UUID = id
     
     /**
      * Gets a [Set] of [UUID]s representing the members of this party.

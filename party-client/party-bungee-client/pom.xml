@@ -9,25 +9,22 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>party-bukkit-client</artifactId>
+    <artifactId>party-bungee-client</artifactId>
+
+    <!-- TODO: Use own repo -->
+    <repositories>
+        <repository>
+            <id>bungeecord-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-server</artifactId>
-            <version>1.8-R4</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>de.bergwerklabs.framework</groupId>
-            <artifactId>spigot-commons</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>de.bergwerklabs.framework</groupId>
-            <artifactId>chat-commons</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-api</artifactId>
+            <version>1.12-SNAPSHOT</version>
+            <type>jar</type>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -85,4 +82,6 @@
             </plugin>
         </plugins>
     </build>
+
+
 </project>
