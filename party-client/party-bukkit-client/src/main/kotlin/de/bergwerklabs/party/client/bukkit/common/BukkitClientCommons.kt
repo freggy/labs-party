@@ -4,6 +4,7 @@ import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
+import de.bergwerklabs.party.client.bukkit.bukkitClient
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.util.function.Consumer
@@ -15,11 +16,16 @@ import java.util.function.Consumer
  * @param inviteSender player who sent the party invitation.
  */
 internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSender: Player) {
+    val messenger = bukkitClient!!.messenger
+    val playerName = PlayerResolver.resolveUuidToName(response.playerUuid)
+    
     when (response.status) {
-        PartyInviteStatus.ACCEPTED          -> {}
-        PartyInviteStatus.DENIED            -> {}
-        PartyInviteStatus.PARTY_FULL        -> TODO()
-        PartyInviteStatus.PARTY_NOT_PRESENT -> TODO()
+        PartyInviteStatus.ACCEPTED          -> {
+            // TODO: display to all members
+            messenger.message("§a✚§r $playerName §bist der Party beigetreten.", inviteSender)
+        }
+        PartyInviteStatus.DENIED            -> messenger.message("§c✖§r $playerName §bhat die Einaldung abgelehnt.", inviteSender)
+        else                                -> messenger.message("§dHoppla, da ist wohl ein Fehlerchen aufgetreten.", inviteSender)
     }
 }
 
