@@ -27,6 +27,11 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
                 return
             }
         }
+        else if (currentParties.values.any { p -> p.members.contains(pkg.invitedPlayer) || p.owner == pkg.invitedPlayer }) {
+            logger.info("Invited player ${pkg.invitedPlayer} is already partied.")
+            packageService.sendResponse(PartyServerInviteResponsePackage(pkg.partyId, null, pkg.sender, InviteStatus.ALREADY_PARTIED), pkg)
+            return
+        }
         else {
             logger.info("Party does not exist anymore, sending error message back.")
             packageService.sendResponse(PartyServerInviteResponsePackage(pkg.partyId, null, pkg.sender, InviteStatus.PARTY_NOT_PRESENT), pkg)

@@ -19,12 +19,15 @@ internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSend
     val messenger = bukkitClient!!.messenger
     val playerName = PlayerResolver.resolveUuidToName(response.playerUuid)
     
+    // TODO: use rank color
+    
     when (response.status) {
         PartyInviteStatus.ACCEPTED          -> {
             // TODO: display to all members
             messenger.message("§a✚§r $playerName §bist der Party beigetreten.", inviteSender)
         }
         PartyInviteStatus.DENIED            -> messenger.message("§c✖§r $playerName §bhat die Einaldung abgelehnt.", inviteSender)
+        PartyInviteStatus.ALREADY_PARTIED   -> messenger.message("§c§a$playerName ist bereits in einer Party", inviteSender)
         else                                -> messenger.message("§dHoppla, da ist wohl ein Fehlerchen aufgetreten.", inviteSender)
     }
 }

@@ -57,6 +57,7 @@ internal fun wrapPartyInviteResponse(response: PartyServerInviteResponsePackage)
         InviteStatus.EXPIRED           -> PartyInviteStatus.EXPIRED
         InviteStatus.PARTY_FULL        -> PartyInviteStatus.PARTY_FULL
         InviteStatus.PARTY_NOT_PRESENT -> PartyInviteStatus.PARTY_NOT_PRESENT
+        InviteStatus.ALREADY_PARTIED   -> PartyInviteStatus.ALREADY_PARTIED
     }
     return PartyInviteResponse(response.responder, status, response.partyId)
 }
