@@ -47,8 +47,9 @@ class PartyListCommand : ChildCommand {
         player.sendMessage("§6§m-----§b Party-Übersicht §6§m-----")
         party.getMembers().forEach { member ->
             val name = PlayerResolver.resolveUuidToName(member).get()
-            FancyMessage("✖").color(ChatColor.RED).command("/party kick $name").formattedTooltip(FancyMessage("Entfernt $name von der Party"))
+            FancyMessage("✖").color(ChatColor.RED).command("/party kick $name").formattedTooltip(FancyMessage("Entfernt $name von der Party."))
                     .then("☗").color(ChatColor.GREEN).command("/party promote $name").formattedTooltip(FancyMessage("Befördert $name zun neuen Party-Owner."))
+                    .then("➥").color(ChatColor.AQUA).command("/party tp $name").formattedTooltip(FancyMessage("Du wirst zu $name teleportiert."))
                     .then(" $name")
                     .send(player)
         }
@@ -63,9 +64,17 @@ class PartyListCommand : ChildCommand {
      */
     private fun displayMemberView(player: Player, party: Party) {
         player.sendMessage("§6§m-----§b Party-Übersicht §6§m-----")
-        player.sendMessage("§6■§r ${PlayerResolver.resolveUuidToName(party.getPartyOwner()).get()}")
+        val ownerName = PlayerResolver.resolveUuidToName(party.getPartyOwner()).get()
+        FancyMessage("■").color(ChatColor.GOLD)
+                .then("➥").color(ChatColor.AQUA).command("/party tp $ownerName").formattedTooltip(FancyMessage("Du wirst zu $ownerName teleportiert."))
+                .then(ownerName)
+                .send(player)
+        
         party.getMembers().forEach { member ->
-            player.sendMessage("§a■§r ${PlayerResolver.resolveUuidToName(party.getPartyOwner()).get()}")
+            val memberName = PlayerResolver.resolveUuidToName(member)
+            FancyMessage("■").color(ChatColor.GREEN)
+                    .then("➥").color(ChatColor.AQUA).command("/party tp $memberName").formattedTooltip(FancyMessage("Du wirst zu $memberName teleportiert."))
+                    .send(player)
         }
         player.sendMessage("§6§m-------------------------")
     }

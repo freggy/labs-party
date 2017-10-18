@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.client.bukkit.command
 
+import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.spigot.pluginmessage.PluginMessageOption
 import de.bergwerklabs.framework.commons.spigot.pluginmessage.PluginMessages
 import de.bergwerklabs.party.api.PartyApi
@@ -27,12 +28,13 @@ class PartyChatCommand : CommandExecutor {
                 if (optional.isPresent) {
                     val party = optional.get()
                     party.getMembers().forEach { uuid ->
-                        val name = "" // TODO: resolve uuid
-                        PluginMessages.sendPluginMessage(bukkitClient, PluginMessageOption.MESSAGE, name, "${bukkitClient!!.messenger.prefix}�a${sender.displayName}�f: ${StringUtils.join(args, " ")}")
+                        val name = PlayerResolver.resolveUuidToName(uuid).get()
+                        // TODO: use rank color
+                        PluginMessages.sendPluginMessage(bukkitClient, PluginMessageOption.MESSAGE, name, "${bukkitClient!!.messenger.prefix}§a${sender.displayName}§f: ${StringUtils.join(args, " ")}")
                     }
                 }
                 else {
-                    bukkitClient!!.messenger.message("�cDu bist in keiner Party.", sender)
+                    bukkitClient!!.messenger.message("§cDu bist in keiner Party.", sender)
                     sender.playSound(sender.eyeLocation, Sound.NOTE_BASS, 1F, 100F)
                 }
             }
