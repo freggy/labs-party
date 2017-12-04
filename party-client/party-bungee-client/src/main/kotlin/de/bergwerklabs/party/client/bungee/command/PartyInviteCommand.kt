@@ -1,15 +1,11 @@
 package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
-import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.PartyApi
-import de.bergwerklabs.party.client.bukkit.bukkitClient
-import de.bergwerklabs.party.client.bukkit.common.sendPartyInvites
+import de.bergwerklabs.party.client.bungee.partyBungeeClient
+import de.bergwerklabs.party.client.bungee.sendPartyInvites
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
-import org.bukkit.command.Command
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 
 /**
  * Created by Yannic Rieger on 17.10.2017.
@@ -33,7 +29,7 @@ class PartyInviteCommand : BungeeCommand {
                 val party = optional.get()
                 sendPartyInvites(sender, args, party)
             }
-            else bukkitClient!!.messenger.message("§cDu bist in keiner Party.", sender)
+            else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
     }
 }

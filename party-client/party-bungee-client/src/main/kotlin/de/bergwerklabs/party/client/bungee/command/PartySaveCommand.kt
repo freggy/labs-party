@@ -1,10 +1,7 @@
 package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
-import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import net.md_5.bungee.api.CommandSender
-import org.bukkit.command.Command
-import org.bukkit.command.CommandSender
 
 /**
  * Created by Yannic Rieger on 30.09.2017.

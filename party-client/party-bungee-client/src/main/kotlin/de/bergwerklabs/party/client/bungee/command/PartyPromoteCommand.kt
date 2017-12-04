@@ -2,14 +2,10 @@ package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
-import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.PartyApi
-import de.bergwerklabs.party.client.bukkit.bukkitClient
+import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
-import org.bukkit.command.Command
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 
 /**
  * Created by Yannic Rieger on 17.10.2017.
@@ -37,9 +33,9 @@ class PartyPromoteCommand : BungeeCommand {
                         party.changeOwner(it)
                     }
                 }
-                else bukkitClient!!.messenger.message("§cDu bist nicht der Party-Owner", sender)
+                else partyBungeeClient!!.messenger.message("§cDu bist nicht der Party-Owner", sender)
             }
-            else bukkitClient!!.messenger.message("§cDu bist in keiner Party.", sender)
+            else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
     }
 }

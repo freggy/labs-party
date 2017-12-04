@@ -2,15 +2,25 @@ package de.bergwerklabs.party.client.bungee
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.api.party.packages.PartySwitchServerPacket
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteRequestPacket
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
+import de.bergwerklabs.framework.commons.bungee.chat.PluginMessenger
+import de.bergwerklabs.framework.commons.bungee.chat.text.MessageUtil
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
+import net.md_5.bungee.api.ChatColor
+import net.md_5.bungee.api.ChatMessageType
+import net.md_5.bungee.api.chat.ClickEvent
+import net.md_5.bungee.api.chat.ComponentBuilder
 import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.event.ServerDisconnectEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.api.plugin.Plugin
 import net.md_5.bungee.event.EventHandler
+import java.util.*
+
+var partyBungeeClient: PartyBungeeClient? = null
 
 /**
  * Created by Yannic Rieger on 17.10.2017.
@@ -21,16 +31,57 @@ import net.md_5.bungee.event.EventHandler
  */
 class PartyBungeeClient : Plugin(), Listener {
     
+    val invitedFor = HashMap<UUID, PartyServerInviteRequestPacket>()
+    
+    val messenger = PluginMessenger("Party")
+    
     private val logger = AtlantisLogger.getLogger(this::class.java)
-    private val packageService = AtlantisPackageService()
+    
+    private val packageService = AtlantisPackageService(
+            PartyServerInviteRequestPacket::class.java,
+            PartySwitchServerPacket::class.java)
     
     override fun onEnable() {
+        partyBungeeClient = this
+        packageService.addListener(PartySwitchServerPacket::class.java, { pkg ->
+            PartyApi.getParty(pkg.partyId).ifPresent {
+                it.getMembers().forEach { member ->
+                    val player = this.proxy.getPlayer(member)
+                    // only move players registered to this client
+                    if (player != null) {
+                        // TODO: connect
+                    }
+                }
+            }
+        })
     
-    
-    
+        packageService.addListener(PartyServerInviteRequestPacket::class.java, { pkg ->
+            this.proxy.getPlayer(pkg.responder).let {
+                val initialSenderName = PlayerResolver.resolveUuidToName(pkg.initalSender).get()
+            
+                // nasty little workaround to get the fancy message centered as well.
+                val spaces = MessageUtil.getSpacesToCenter("§a[ANNEHMEN]§6 | §c[ABLEHNEN]")
+                val builder = StringBuilder()
+                for (i in 0..spaces) builder.append(" ")
+            
+                val message = ComponentBuilder("$builder§a[ANNEHMEN]").color(ChatColor.GREEN)
+                            .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party accept"))
+                        .append(" ❘ ").color(ChatColor.GOLD)
+                        .append("[ABLEHNEN]").color(ChatColor.RED)
+                            .event(ClickEvent(ClickEvent.Action.RUN_COMMAND,"/party deny"))
+                        .create()
+            
+                MessageUtil.sendCenteredMessage(it, "§6§m-------§b Party-Einladung §6§m-------")
+                MessageUtil.sendCenteredMessage(it, " ")
+                MessageUtil.sendCenteredMessage(it, "§7Du hast eine Einladung von §a$initialSenderName §7erhalten.")
+                MessageUtil.sendCenteredMessage(it," ")
+                it.sendMessage(ChatMessageType.CHAT, *message)
+                MessageUtil.sendCenteredMessage(it," ")
+                MessageUtil.sendCenteredMessage(it, "§6§m--------------")
+                invitedFor[it.uniqueId] = pkg
+            }
+        })
     }
-    
-    
     
     @EventHandler
     fun onPlayerDisconnectServer(event: ServerDisconnectEvent) {

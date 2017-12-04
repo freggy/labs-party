@@ -2,18 +2,17 @@ package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
-import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
-import de.bergwerklabs.party.client.bukkit.bukkitClient
-import mkremins.fanciful.FancyMessage
+import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.ChatColor
+import net.md_5.bungee.api.ChatMessageType
 import net.md_5.bungee.api.CommandSender
+import net.md_5.bungee.api.chat.ClickEvent
+import net.md_5.bungee.api.chat.ComponentBuilder
+import net.md_5.bungee.api.chat.HoverEvent
+import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.connection.ProxiedPlayer
-import org.bukkit.ChatColor
-import org.bukkit.command.Command
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
@@ -40,7 +39,7 @@ class PartyListCommand : BungeeCommand {
                 }
                 else this.displayMemberView(sender, party)
             }
-            else bukkitClient!!.messenger.message("§cDu bist in keiner Party.", sender)
+            else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
     }
     
@@ -51,16 +50,23 @@ class PartyListCommand : BungeeCommand {
      * @param party  party that the player is the owner of.
      */
     private fun displayOwnerView(player: ProxiedPlayer, party: Party) {
-        player.sendMessage("§6§m-----§b Party-Übersicht §6§m-----")
+        player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-----§b Party-Übersicht §6§m-----"))
         party.getMembers().forEach { member ->
             val name = PlayerResolver.resolveUuidToName(member).get()
-            FancyMessage("✖").color(ChatColor.RED).command("/party kick $name").formattedTooltip(FancyMessage("Entfernt $name von der Party."))
-                    .then("☗").color(ChatColor.GREEN).command("/party promote $name").formattedTooltip(FancyMessage("Befördert $name zun neuen Party-Owner."))
-                    .then("➥").color(ChatColor.AQUA).command("/party tp $name").formattedTooltip(FancyMessage("Du wirst zu $name teleportiert."))
-                    .then(" $name")
-                    .send(player)
+            val message = ComponentBuilder("✖").color(ChatColor.RED)
+                        .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party kick $name"))
+                        .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Entfernt $name von der Party.")))
+                    .append("☗").color(ChatColor.GREEN)
+                        .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party promote $name"))
+                        .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Befördert $name zun neuen Party-Owner.")))
+                    .append("➥").color(ChatColor.AQUA)
+                        .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $name"))
+                        .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $name teleportiert.")))
+                    .append(" $name")
+                    .create()
+            player.sendMessage(ChatMessageType.CHAT, *message)
         }
-        player.sendMessage("§6§m-------------------------")
+        player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-------------------------"))
     }
     
     /**
@@ -70,19 +76,26 @@ class PartyListCommand : BungeeCommand {
      * @param party  party the player is a member of.
      */
     private fun displayMemberView(player: ProxiedPlayer, party: Party) {
-        player.sendMessage("§6§m-----§b Party-Übersicht §6§m-----")
+        player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-----§b Party-Übersicht §6§m-----"))
         val ownerName = PlayerResolver.resolveUuidToName(party.getPartyOwner()).get()
-        FancyMessage("■").color(ChatColor.GOLD)
-                .then("➥").color(ChatColor.AQUA).command("/party tp $ownerName").formattedTooltip(FancyMessage("Du wirst zu $ownerName teleportiert."))
-                .then(ownerName)
-                .send(player)
+        
+        val message = ComponentBuilder("■").color(ChatColor.GOLD)
+                .append("➥").color(ChatColor.AQUA)
+                    .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $ownerName"))
+                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $ownerName teleportiert.")))
+                .append(ownerName)
+                .create()
+        player.sendMessage(ChatMessageType.CHAT, *message)
         
         party.getMembers().forEach { member ->
             val memberName = PlayerResolver.resolveUuidToName(member)
-            FancyMessage("■").color(ChatColor.GREEN)
-                    .then("➥").color(ChatColor.AQUA).command("/party tp $memberName").formattedTooltip(FancyMessage("Du wirst zu $memberName teleportiert."))
-                    .send(player)
+            val msg = ComponentBuilder("■").color(ChatColor.GREEN)
+                    .append("➥").color(ChatColor.AQUA)
+                        .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $memberName"))
+                        .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $memberName teleportiert.")))
+                    .create()
+            player.sendMessage(ChatMessageType.CHAT, *msg)
         }
-        player.sendMessage("§6§m-------------------------")
+        player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-------------------------"))
     }
 }
