@@ -1,9 +1,12 @@
-package de.bergwerklabs.party.client.bukkit.command
+package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.client.bukkit.bukkitClient
+import net.md_5.bungee.api.CommandSender
+import net.md_5.bungee.api.connection.ProxiedPlayer
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -15,12 +18,16 @@ import org.bukkit.entity.Player
  *
  * @author Yannic Rieger
  */
-class PartyPromoteCommand : ChildCommand{
+class PartyPromoteCommand : BungeeCommand {
+    
+    override fun getUsage() = "/party promote <owner>"
     
     override fun getName() = "promote"
     
-    override fun onCommand(sender: CommandSender?, command: Command?, label: String?, args: Array<out String>?): Boolean {
-        if (sender is Player) {
+    override fun getDescription() = "Befördert einen Spieler zum Party-Owner."
+    
+    override fun execute(sender: CommandSender?, args: Array<out String>?) {
+        if (sender is ProxiedPlayer) {
             val optional = PartyApi.getParty(sender.uniqueId)
             if (optional.isPresent) {
                 val party = optional.get()
@@ -34,6 +41,5 @@ class PartyPromoteCommand : ChildCommand{
             }
             else bukkitClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
-        return true
     }
 }

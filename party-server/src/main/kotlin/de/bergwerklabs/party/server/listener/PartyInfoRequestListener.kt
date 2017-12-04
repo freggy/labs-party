@@ -1,8 +1,8 @@
 package de.bergwerklabs.party.server.listener
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
-import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoRequestPackage
-import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePackage
+import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoRequestPacket
+import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePacket
 import de.bergwerklabs.party.server.AtlantisPackageListener
 import de.bergwerklabs.party.server.currentParties
 import de.bergwerklabs.party.server.packageService
@@ -12,15 +12,15 @@ import de.bergwerklabs.party.server.packageService
  *
  * @author Yannic Rieger
  */
-class PartyInfoRequestListener : AtlantisPackageListener<PartyInfoRequestPackage>() {
+class PartyInfoRequestListener : AtlantisPackageListener<PartyInfoRequestPacket>() {
     
     private val logger = AtlantisLogger.getLogger(this::class.java)
     
-    override fun onResponse(pkg: PartyInfoRequestPackage) {
+    override fun onResponse(pkg: PartyInfoRequestPacket) {
         logger.info("Sending back party information for player ${pkg.player}")
         val party = currentParties.values.firstOrNull { atlantisParty -> atlantisParty.members.contains(pkg.player) }
         logger.info("Party is: $party")
         logger.info("Party can be 'null' if player is not partied.")
-        packageService.sendResponse(PartyInfoResponsePackage(pkg.player, party), pkg)
+        packageService.sendResponse(PartyInfoResponsePacket(pkg.player, party), pkg)
     }
 }

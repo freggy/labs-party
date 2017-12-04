@@ -1,11 +1,15 @@
-package de.bergwerklabs.party.client.bukkit.command
+package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.client.bukkit.bukkitClient
 import mkremins.fanciful.FancyMessage
+import net.md_5.bungee.api.ChatColor
+import net.md_5.bungee.api.CommandSender
+import net.md_5.bungee.api.connection.ProxiedPlayer
 import org.bukkit.ChatColor
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
@@ -18,12 +22,16 @@ import org.bukkit.entity.Player
  *
  * @author Yannic Rieger
  */
-class PartyListCommand : ChildCommand {
+class PartyListCommand : BungeeCommand {
+    
+    override fun getUsage() = "/party list"
     
     override fun getName() = "list"
     
-    override fun onCommand(sender: CommandSender?, command: Command?, label: String?, args: Array<out String>?): Boolean {
-        if (sender is Player) {
+    override fun getDescription() = "Listet alle Mitglierder der Party auf."
+    
+    override fun execute(sender: CommandSender?, args: Array<out String>?) {
+        if (sender is ProxiedPlayer) {
             val optional = PartyApi.getParty(sender.uniqueId)
             if (optional.isPresent) {
                 val party = optional.get()
@@ -34,7 +42,6 @@ class PartyListCommand : ChildCommand {
             }
             else bukkitClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
-        return true
     }
     
     /**
@@ -43,7 +50,7 @@ class PartyListCommand : ChildCommand {
      * @param player player to send the messages to.
      * @param party  party that the player is the owner of.
      */
-    private fun displayOwnerView(player: Player, party: Party) {
+    private fun displayOwnerView(player: ProxiedPlayer, party: Party) {
         player.sendMessage("§6§m-----§b Party-Übersicht §6§m-----")
         party.getMembers().forEach { member ->
             val name = PlayerResolver.resolveUuidToName(member).get()
@@ -62,7 +69,7 @@ class PartyListCommand : ChildCommand {
      * @param player player to send the member view to.
      * @param party  party the player is a member of.
      */
-    private fun displayMemberView(player: Player, party: Party) {
+    private fun displayMemberView(player: ProxiedPlayer, party: Party) {
         player.sendMessage("§6§m-----§b Party-Übersicht §6§m-----")
         val ownerName = PlayerResolver.resolveUuidToName(party.getPartyOwner()).get()
         FancyMessage("■").color(ChatColor.GOLD)

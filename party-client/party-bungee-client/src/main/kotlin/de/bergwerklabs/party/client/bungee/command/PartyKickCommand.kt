@@ -1,10 +1,13 @@
-package de.bergwerklabs.party.client.bukkit.command
+package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
 import de.bergwerklabs.party.client.bukkit.bukkitClient
+import net.md_5.bungee.api.CommandSender
+import net.md_5.bungee.api.connection.ProxiedPlayer
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -16,20 +19,24 @@ import org.bukkit.entity.Player
  *
  * @author Yannic Rieger
  */
-class PartyKickCommand : ChildCommand {
+class PartyKickCommand : BungeeCommand {
+    
+    override fun getUsage() = "/party kick <spieler>"
     
     override fun getName() = "kick"
     
-    override fun onCommand(sender: CommandSender?, command: Command?, label: String?, args: Array<out String>?): Boolean {
-        if (sender is Player) {
+    override fun getDescription() = "Entfernt einen Spieler aus der Party."
     
+    override fun execute(sender: CommandSender?, args: Array<out String>?) {
+        if (sender is ProxiedPlayer) {
+        
             if (args != null && args.isEmpty()) {
                 bukkitClient!!.messenger.message("§cDu musst mindestens einen Spieler angeben.", sender)
-                return true
+                return
             }
-            
+        
             val optional = PartyApi.getParty(sender.uniqueId)
-            
+        
             if (optional.isPresent) {
                 val party = optional.get()
                 val toKick = PlayerResolver.resolveNameToUuid(args!![0]).get()
@@ -37,6 +44,5 @@ class PartyKickCommand : ChildCommand {
             }
             else bukkitClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
-        return true
     }
 }

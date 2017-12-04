@@ -2,8 +2,8 @@ package de.bergwerklabs.party.server.listener
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.api.party.AtlantisParty
-import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRequestPackage
-import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePackage
+import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRequestPacket
+import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePacket
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponseType
 import de.bergwerklabs.party.server.AtlantisPackageListener
 import de.bergwerklabs.party.server.currentParties
@@ -18,19 +18,19 @@ import java.util.concurrent.CopyOnWriteArrayList
  *
  * @author Yannic Rieger
  */
-class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPackage>() {
+class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPacket>() {
     
     private val logger = AtlantisLogger.getLogger(this::class.java)
     
-    override fun onResponse(pkg: PartyCreateRequestPackage) {
+    override fun onResponse(pkg: PartyCreateRequestPacket) {
         if (currentParties.values.any { party -> party.members.contains(pkg.owner) || party.owner.equals(pkg.owner) }) {
             logger.info("Cannot create party because requesting player is already partied.")
-            packageService.sendResponse(PartyCreateResponsePackage(pkg.partyId, PartyCreateResponseType.ALREADY_PARTIED), pkg)
+            packageService.sendResponse(PartyCreateResponsePacket(pkg.partyId, PartyCreateResponseType.ALREADY_PARTIED), pkg)
             return
         }
         else if (pkg.members.size > 7) { // TODO: make configurable && maybe check if owner is premium
             logger.info("Too much party members for party ${pkg.partyId}. Party member count: ${pkg.members.size}")
-            packageService.sendResponse(PartyCreateResponsePackage(pkg.partyId, PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT), pkg)
+            packageService.sendResponse(PartyCreateResponsePacket(pkg.partyId, PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT), pkg)
             return
         }
         
@@ -39,7 +39,7 @@ class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPac
         
         currentParties.put(partyId, AtlantisParty(pkg.owner, pkg.members, partyId))
         pendingInvites[pkg.partyId] = CopyOnWriteArrayList()
-        packageService.sendResponse(PartyCreateResponsePackage(partyId, PartyCreateResponseType.SUCCESS), pkg)
+        packageService.sendResponse(PartyCreateResponsePacket(partyId, PartyCreateResponseType.SUCCESS), pkg)
     }
     
     /**

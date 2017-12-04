@@ -1,10 +1,13 @@
-package de.bergwerklabs.party.client.bukkit.command
+package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.framework.commons.spigot.command.ChildCommand
 import de.bergwerklabs.framework.commons.spigot.pluginmessage.PluginMessageOption
 import de.bergwerklabs.framework.commons.spigot.pluginmessage.PluginMessages
 import de.bergwerklabs.party.client.bukkit.bukkitClient
+import net.md_5.bungee.api.CommandSender
+import net.md_5.bungee.api.connection.ProxiedPlayer
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -14,17 +17,21 @@ import org.bukkit.entity.Player
  *
  * @author Yannic Rieger
  */
-class PartyWarpCommand : ChildCommand {
+class PartyWarpCommand : BungeeCommand {
+    
+    override fun getUsage() = "/party tp <spieler>"
     
     override fun getName() = "tp"
     
-    override fun onCommand(sender: CommandSender?, command: Command?, label: String?, args: Array<out String>?): Boolean {
-        if (sender is Player) {
+    override fun getDescription() = "Teleportiert zu einem anderen Party-Mitglied."
+    
+    override fun execute(sender: CommandSender?, args: Array<out String>?) {
+        if (sender is ProxiedPlayer) {
             val to = args!![0]
             PlayerResolver.getOnlinePlayerCacheEntry(to).ifPresent {
-                PluginMessages.sendPluginMessage(bukkitClient, PluginMessageOption.CONNECT_OTHER, sender.displayName, it.currentServer.containerId)
+                // TODO: connect
             }
         }
-        return true
     }
+    
 }

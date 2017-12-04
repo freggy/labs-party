@@ -1,7 +1,7 @@
 package de.bergwerklabs.party.client.bungee
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
-import de.bergwerklabs.atlantis.api.party.packages.PartySwitchServerPackage
+import de.bergwerklabs.atlantis.api.party.packages.PartySwitchServerPacket
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.api.PartyApi
@@ -24,6 +24,14 @@ class PartyBungeeClient : Plugin(), Listener {
     private val logger = AtlantisLogger.getLogger(this::class.java)
     private val packageService = AtlantisPackageService()
     
+    override fun onEnable() {
+    
+    
+    
+    }
+    
+    
+    
     @EventHandler
     fun onPlayerDisconnectServer(event: ServerDisconnectEvent) {
         val player = event.target
@@ -34,7 +42,7 @@ class PartyBungeeClient : Plugin(), Listener {
                     it.disband()
                 }
                 else {
-                    logger.info("Party member left the server, he will be removed from the party.")
+                    this.logger.info("Party member left the server, he will be removed from the party.")
                     it.removeMember(uuid, PartyUpdateAction.PLAYER_LEAVE)
                 }
             }
@@ -55,7 +63,7 @@ class PartyBungeeClient : Plugin(), Listener {
                     
                     if (lobbyToGameserver || gameserverToLobby) {
                         this.logger.info("Party owner switched the server, party members will be moved as well.")
-                        this.packageService.sendPackage(PartySwitchServerPackage(it.getPartyId(), event.target.name))
+                        this.packageService.sendPackage(PartySwitchServerPacket(it.getPartyId(), event.target.name))
                     }
                 }
             }

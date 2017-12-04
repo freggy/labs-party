@@ -1,6 +1,6 @@
 package de.bergwerklabs.party.server.listener
 
-import de.bergwerklabs.atlantis.api.party.packages.PartySavePackage
+import de.bergwerklabs.atlantis.api.party.packages.PartySavePacket
 import de.bergwerklabs.party.server.AtlantisPackageListener
 
 /**
@@ -8,9 +8,9 @@ import de.bergwerklabs.party.server.AtlantisPackageListener
  *
  * @author Yannic Rieger
  */
-class PartySavePackageListener : AtlantisPackageListener<PartySavePackage>() {
+class PartySavePackageListener : AtlantisPackageListener<PartySavePacket>() {
     
-    override fun onResponse(pkg: PartySavePackage) {
+    override fun onResponse(pkg: PartySavePacket) {
         // TODO: save party to db
     }
 }

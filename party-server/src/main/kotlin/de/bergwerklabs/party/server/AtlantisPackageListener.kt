@@ -1,6 +1,6 @@
 package de.bergwerklabs.party.server
 
-import de.bergwerklabs.atlantis.api.packages.APackage
+import de.bergwerklabs.atlantis.api.packages.AbstractPacket
 
 /**
  * Created by Yannic Rieger on 22.09.2017.
@@ -9,7 +9,7 @@ import de.bergwerklabs.atlantis.api.packages.APackage
  *
  * @author Yannic Rieger
  */
-abstract class AtlantisPackageListener<in T : APackage> {
+abstract class AtlantisPackageListener<in T : AbstractPacket> {
     
     /**
      * Will be invoked when the packages has been received.

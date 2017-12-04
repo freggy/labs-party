@@ -34,6 +34,7 @@ class BukkitPartyClient : JavaPlugin() {
     
     override fun onEnable() {
         bukkitClient = this
+        // TODO: add child commands
         this.getCommand("party").executor = PartyParentCommand("party", PartyCreateCommand())
         this.getCommand("p").executor = PartyChatCommand()
         

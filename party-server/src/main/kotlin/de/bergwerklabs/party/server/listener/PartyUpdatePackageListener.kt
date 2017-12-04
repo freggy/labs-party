@@ -3,7 +3,7 @@ package de.bergwerklabs.party.server.listener
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
-import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePackage
+import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePacket
 import de.bergwerklabs.party.server.AtlantisPackageListener
 import de.bergwerklabs.party.server.currentParties
 import java.util.*
@@ -13,11 +13,11 @@ import java.util.*
  *
  * @author Yannic Rieger
  */
-class PartyUpdatePackageListener : AtlantisPackageListener<PartyUpdatePackage>() {
+class PartyUpdatePackageListener : AtlantisPackageListener<PartyUpdatePacket>() {
     
     private val logger = AtlantisLogger.getLogger(this::class.java)
     
-    override fun onResponse(pkg: PartyUpdatePackage) {
+    override fun onResponse(pkg: PartyUpdatePacket) {
         when (pkg.update) {
             PartyUpdate.PLAYER_JOIN  -> this.handlePlayerJoin(pkg.player, pkg.partyId)
             PartyUpdate.PLAYER_KICK  -> this.handlePlayerKick(pkg.player, pkg.partyId)
