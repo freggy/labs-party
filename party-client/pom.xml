@@ -11,7 +11,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>party-client-parent</artifactId>
     <modules>
-        <module>party-bukkit-client</module>
         <module>party-bungee-client</module>
     </modules>
     <dependencies>

@@ -9,6 +9,7 @@ import de.bergwerklabs.framework.commons.bungee.chat.PluginMessenger
 import de.bergwerklabs.framework.commons.bungee.chat.text.MessageUtil
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
+import de.bergwerklabs.party.client.bungee.command.*
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatMessageType
 import net.md_5.bungee.api.chat.ClickEvent
@@ -43,6 +44,19 @@ class PartyBungeeClient : Plugin(), Listener {
     
     override fun onEnable() {
         partyBungeeClient = this
+        
+        
+        this.proxy.pluginManager.registerListener(this, this)
+        this.proxy.pluginManager.registerCommand(this, PartyParentCommand(
+                "",
+                "",
+                "",
+                PartyKickCommand(),
+                PartyInviteCommand(),
+                PartyInviteAcceptCommand(),
+                PartyInviteDenyCommand()
+        ))
+        
         packageService.addListener(PartySwitchServerPacket::class.java, { pkg ->
             PartyApi.getParty(pkg.partyId).ifPresent {
                 it.getMembers().forEach { member ->

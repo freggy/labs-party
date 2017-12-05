@@ -1,0 +1,4 @@
+name: PartyBungeeClient
+author: freggy
+version: 1.0
+main: de.bergwerklabs.party.client.bungee.PartyBungeeClient
