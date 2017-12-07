@@ -23,7 +23,14 @@ class PartyInviteAcceptCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            PartyApi.respondToInvite(PartyInviteStatus.ACCEPTED, sender.uniqueId, partyBungeeClient!!.invitedFor[sender.uniqueId]!!)
+            partyBungeeClient!!.runAsync {
+                if (PartyApi.isPartied(sender.uniqueId)) {
+                    PartyApi.respondToInvite(PartyInviteStatus.ACCEPTED, sender.uniqueId, partyBungeeClient!!.invitedFor[sender.uniqueId]!!)
+                    // remove all entries because player is partied and should no longer respond to those invites
+                    partyBungeeClient!!.invitedFor.remove(sender.uniqueId)
+                }
+                else partyBungeeClient!!.messenger.message("§cDu bist bereits in einer Party.", sender)
+            }
         }
     }
 }

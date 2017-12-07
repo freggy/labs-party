@@ -24,18 +24,19 @@ class PartyDisbandCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            val optional = PartyApi.getParty(sender.uniqueId)
-            val uuid = sender.uniqueId
-        
-            if (optional.isPresent) {
-                val party = optional.get()
-                if (party.isOwner(uuid)) {
-                    party.disband()
+            partyBungeeClient!!.runAsync {
+                val optional = PartyApi.getParty(sender.uniqueId)
+                val uuid = sender.uniqueId
+    
+                if (optional.isPresent) {
+                    val party = optional.get()
+                    if (party.isOwner(uuid)) {
+                        party.disband()
+                    }
+                    else partyBungeeClient!!.messenger.message("§cUm eine Party aufzulösen, musst du Party-Leader sein.", sender)
                 }
-                else partyBungeeClient!!.messenger.message("§cUm eine Party aufzul�sen, musst du Party-Leader sein.", sender)
+                else partyBungeeClient!!.messenger.message("§cDu befindest dich zur Zeit in keiner Party.", sender)
             }
-            else partyBungeeClient!!.messenger.message("§cDu befindest dich zur Zeit in keiner Party.", sender)
-        
         }
     }
 }

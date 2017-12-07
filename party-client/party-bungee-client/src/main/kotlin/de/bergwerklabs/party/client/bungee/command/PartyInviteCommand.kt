@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.client.bungee.command
 
+import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
@@ -24,12 +25,14 @@ class PartyInviteCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            val optional = PartyApi.getParty(sender.uniqueId)
-            if (optional.isPresent) {
-                val party = optional.get()
-                sendPartyInvites(sender, args, party)
+            partyBungeeClient!!.runAsync {
+                val optional = PartyApi.getParty(sender.uniqueId)
+                if (optional.isPresent) {
+                    val party = optional.get()
+                    sendPartyInvites(sender, args, party)
+                }
+                else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
             }
-            else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
     }
 }

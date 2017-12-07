@@ -1,11 +1,13 @@
 package de.bergwerklabs.party.client.bungee.command
 
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteResponsePacket
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyCreateStatus
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
+import de.bergwerklabs.party.client.bungee.PartyBungeeClient
 import de.bergwerklabs.party.client.bungee.handlePartyInviteResponse
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
@@ -32,17 +34,25 @@ class PartyCreateCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            val result = PartyApi.createParty(sender.uniqueId)
-            when {
-                result.status == PartyCreateStatus.SUCCESS -> {
-                    partyBungeeClient!!.messenger.message("§aParty wurde erfolgreich erstellt.", sender)
-                    this.sendPartyInvites(args, result.party.get(), sender)
-                }
-                result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT -> {
-                    errorMessage(sender, 4) // TODO: insert fitting value
-                }
-                result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_PREMIUM -> {
-                    errorMessage(sender, 4) // TODO: insert fitting value
+            partyBungeeClient!!.runAsync {
+                val result = PartyApi.createParty(sender.uniqueId)
+                when {
+                    result.status == PartyCreateStatus.SUCCESS -> {
+                        partyBungeeClient!!.messenger.message("§aParty wurde erfolgreich erstellt.", sender)
+                        this.sendPartyInvites(args, result.party.get(), sender)
+                    }
+                    result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT -> {
+                        errorMessage(sender, 4) // TODO: insert fitting value
+                    }
+                    result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_PREMIUM -> {
+                        errorMessage(sender, 4) // TODO: insert fitting value
+                    }
+                    result.status == PartyCreateStatus.UNKNOWN_ERROR -> {
+                        partyBungeeClient!!.messenger.message("§4FEHLER", sender)
+                    }
+                    result.status == PartyCreateStatus.ALREADY_PARTIED -> {
+                        partyBungeeClient!!.messenger.message("§4PartyCreateStatus.ALREADY_PARTIED", sender)
+                    }
                 }
             }
         }

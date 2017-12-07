@@ -7,6 +7,7 @@ import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.framework.commons.bungee.chat.PluginMessenger
 import de.bergwerklabs.framework.commons.bungee.chat.text.MessageUtil
+import de.bergwerklabs.framework.commons.bungee.permissions.ZBridge
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
 import de.bergwerklabs.party.client.bungee.command.*
@@ -14,6 +15,7 @@ import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatMessageType
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ComponentBuilder
+import net.md_5.bungee.api.event.PlayerDisconnectEvent
 import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.event.ServerDisconnectEvent
 import net.md_5.bungee.api.plugin.Listener
@@ -36,6 +38,8 @@ class PartyBungeeClient : Plugin(), Listener {
     
     val messenger = PluginMessenger("Party")
     
+    val zBridge = ZBridge()
+    
     private val logger = AtlantisLogger.getLogger(this::class.java)
     
     private val packageService = AtlantisPackageService(
@@ -45,16 +49,18 @@ class PartyBungeeClient : Plugin(), Listener {
     override fun onEnable() {
         partyBungeeClient = this
         
-        
         this.proxy.pluginManager.registerListener(this, this)
         this.proxy.pluginManager.registerCommand(this, PartyParentCommand(
+                "party",
                 "",
                 "",
-                "",
+                null,
                 PartyKickCommand(),
                 PartyInviteCommand(),
                 PartyInviteAcceptCommand(),
-                PartyInviteDenyCommand()
+                PartyInviteDenyCommand(),
+                PartyCreateCommand(),
+                PartyListCommand()
         ))
         
         packageService.addListener(PartySwitchServerPacket::class.java, { pkg ->
@@ -97,38 +103,51 @@ class PartyBungeeClient : Plugin(), Listener {
         })
     }
     
+    fun runAsync(method: (Unit) -> Unit) {
+        this.proxy.scheduler.runAsync(this, {
+            method.invoke(Unit)
+        })
+    }
+    
+    
     @EventHandler
-    fun onPlayerDisconnectServer(event: ServerDisconnectEvent) {
-        val player = event.target
-        PlayerResolver.resolveNameToUuid(player.name).ifPresent { uuid ->
-            PartyApi.getParty(uuid).ifPresent {
-                if (it.isOwner(uuid)) {
-                    this.logger.info("Party owner left the server, disbanding party.")
-                    it.disband()
-                }
-                else {
-                    this.logger.info("Party member left the server, he will be removed from the party.")
-                    it.removeMember(uuid, PartyUpdateAction.PLAYER_LEAVE)
+    fun onPlayerDisconnectServer(event: PlayerDisconnectEvent) { // TODO: change evenmt
+        val player = event.player
+        this.runAsync {
+            PlayerResolver.resolveNameToUuid(player.name).ifPresent { uuid ->
+                PartyApi.getParty(uuid).ifPresent {
+                    if (it.isOwner(uuid)) {
+                        this.logger.info("Party owner left the server, disbanding party.")
+                        it.disband()
+                    }
+                    else {
+                        this.logger.info("Party member left the server, he will be removed from the party.")
+                        it.removeMember(uuid, PartyUpdateAction.PLAYER_LEAVE)
+                    }
                 }
             }
         }
     }
     
+    
     @EventHandler
     fun onPlayerConnectServer(event: ServerConnectEvent) {
         val player = event.player
-        PlayerResolver.resolveNameToUuid(player.name).ifPresent { uuid ->
-            PartyApi.getParty(uuid).ifPresent {
-                if (it.isOwner(uuid)) {
-                    val from = player.server.info.name
-                    val to = event.target.name
-                    
-                    val lobbyToGameserver = from.contains("lobby") && !to.contains("lobby")
-                    val gameserverToLobby = !from.contains("lobby") && to.contains("lobby")
-                    
-                    if (lobbyToGameserver || gameserverToLobby) {
-                        this.logger.info("Party owner switched the server, party members will be moved as well.")
-                        this.packageService.sendPackage(PartySwitchServerPacket(it.getPartyId(), event.target.name))
+        
+        this.runAsync {
+            PlayerResolver.resolveNameToUuid(player.name).ifPresent { uuid ->
+                PartyApi.getParty(uuid).ifPresent {
+                    if (it.isOwner(uuid)) {
+                        val from = player.server.info.name
+                        val to = event.target.name
+                
+                        val lobbyToGameserver = from.contains("lobby") && !to.contains("lobby")
+                        val gameserverToLobby = !from.contains("lobby") && to.contains("lobby")
+                
+                        if (lobbyToGameserver || gameserverToLobby) {
+                            this.logger.info("Party owner switched the server, party members will be moved as well.")
+                            this.packageService.sendPackage(PartySwitchServerPacket(it.getPartyId(), event.target.name))
+                        }
                     }
                 }
             }

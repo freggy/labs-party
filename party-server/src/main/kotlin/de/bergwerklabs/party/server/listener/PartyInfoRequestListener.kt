@@ -18,7 +18,7 @@ class PartyInfoRequestListener : AtlantisPackageListener<PartyInfoRequestPacket>
     
     override fun onResponse(pkg: PartyInfoRequestPacket) {
         logger.info("Sending back party information for player ${pkg.player}")
-        val party = currentParties.values.firstOrNull { atlantisParty -> atlantisParty.members.contains(pkg.player) }
+        val party = currentParties.values.firstOrNull { atlantisParty -> atlantisParty.members.contains(pkg.player) || atlantisParty.owner == pkg.player }
         logger.info("Party is: $party")
         logger.info("Party can be 'null' if player is not partied.")
         packageService.sendResponse(PartyInfoResponsePacket(pkg.player, party), pkg)

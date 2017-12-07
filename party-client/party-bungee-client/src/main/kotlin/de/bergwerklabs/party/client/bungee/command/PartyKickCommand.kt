@@ -30,15 +30,30 @@ class PartyKickCommand : BungeeCommand {
                 partyBungeeClient!!.messenger.message("§cDu musst mindestens einen Spieler angeben.", sender)
                 return
             }
-        
-            val optional = PartyApi.getParty(sender.uniqueId)
-        
-            if (optional.isPresent) {
-                val party = optional.get()
-                val toKick = PlayerResolver.resolveNameToUuid(args!![0]).get()
-                party.removeMember(toKick, PartyUpdateAction.PLAYER_KICK)
+            
+            partyBungeeClient!!.runAsync {
+                val optional = PartyApi.getParty(sender.uniqueId)
+    
+                if (optional.isPresent) {
+                    val party = optional.get()
+                    if (party.isOwner(sender.uniqueId)) {
+                        val toKick = PlayerResolver.resolveNameToUuid(args!![0]).get()
+                        if (!party.isMember(toKick)) {
+                            partyBungeeClient!!.messenger.message("§cDieser Spieler ist nicht in deiner Party.", sender)
+                            return@runAsync
+                        }
+                        else if (party.isOwner(toKick)) {
+                            partyBungeeClient!!.messenger.message("§cDu kannst dich nicht selbst entfernen.", sender)
+                            return@runAsync
+                        }
+            
+                        // TODO: display message to all memebers
+                        party.removeMember(toKick, PartyUpdateAction.PLAYER_KICK)
+                    }
+                    else partyBungeeClient!!.messenger.message("§cNur Party-Owner können Mitglieder entfernen.", sender)
+                }
+                else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
             }
-            else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
     }
 }

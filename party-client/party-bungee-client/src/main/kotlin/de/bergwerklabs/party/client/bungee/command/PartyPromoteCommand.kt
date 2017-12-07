@@ -24,18 +24,20 @@ class PartyPromoteCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            val optional = PartyApi.getParty(sender.uniqueId)
-            if (optional.isPresent) {
-                val party = optional.get()
-                if (party.isOwner(sender.uniqueId)) {
-                    PlayerResolver.resolveNameToUuid(args!![0]).ifPresent {
-                        // TODO: display message
-                        party.changeOwner(it)
+            partyBungeeClient!!.runAsync {
+                val optional = PartyApi.getParty(sender.uniqueId)
+                if (optional.isPresent) {
+                    val party = optional.get()
+                    if (party.isOwner(sender.uniqueId)) {
+                        PlayerResolver.resolveNameToUuid(args!![0]).ifPresent {
+                            // TODO: display message
+                            party.changeOwner(it)
+                        }
                     }
+                    else partyBungeeClient!!.messenger.message("§cDu bist nicht der Party-Owner", sender)
                 }
-                else partyBungeeClient!!.messenger.message("§cDu bist nicht der Party-Owner", sender)
+                else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
             }
-            else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
     }
 }

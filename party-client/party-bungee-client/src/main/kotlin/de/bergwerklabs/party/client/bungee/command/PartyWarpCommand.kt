@@ -2,6 +2,7 @@ package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
+import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
 
@@ -21,8 +22,13 @@ class PartyWarpCommand : BungeeCommand {
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
             val to = args!![0]
-            PlayerResolver.getOnlinePlayerCacheEntry(to).ifPresent {
-                // TODO: connect
+            
+            // TODO: check params
+            
+            partyBungeeClient!!.runAsync {
+                PlayerResolver.getOnlinePlayerCacheEntry(to).ifPresent {
+                    // TODO: connect
+                }
             }
         }
     }

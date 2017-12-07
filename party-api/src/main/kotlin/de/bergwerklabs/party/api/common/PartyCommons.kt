@@ -31,8 +31,9 @@ internal fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePacket
     return try {
         future.get(4, TimeUnit.SECONDS)
     }
-    catch (ex: TimeoutException) {
+    catch (ex: Exception) {
         ex.printStackTrace()
+        future.cancel(true)
         // return dummy object to prevent crashes.
         return PartyInfoResponsePacket(UUID.randomUUID(), AtlantisParty(UUID.randomUUID(), mutableListOf(UUID.randomUUID()), UUID.randomUUID()))
     }
@@ -46,14 +47,15 @@ internal fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePacket
  * @return               a [PartyCreateResult]
  */
 internal fun tryPartyCreation(owner: UUID, members: List<UUID>): PartyCreateResult {
-    val future = packageService.sendRequestWithFuture(PartyCreateRequestPacket(owner, members), PartyCreateResponsePacket::class.java)
+    val future = packageService.sendRequestWithFuture(PartyCreateRequestPacket(owner, members.toHashSet()), PartyCreateResponsePacket::class.java)
     val response: PartyCreateResponsePacket
     
     try {
-        response = future.get(4, TimeUnit.SECONDS)
+        response = future.get(2, TimeUnit.SECONDS)
     }
     catch (ex: TimeoutException) {
         ex.printStackTrace()
+        future.cancel(true)
         return PartyCreateResult(Optional.empty(), PartyCreateStatus.UNKNOWN_ERROR)
     }
     

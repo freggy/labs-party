@@ -26,6 +26,7 @@ internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSend
         }
         PartyInviteStatus.DENIED            -> messenger.message("§c✖§r $playerName §bhat die Einaldung abgelehnt.", inviteSender)
         PartyInviteStatus.ALREADY_PARTIED   -> messenger.message("§c§a$playerName ist bereits in einer Party", inviteSender)
+        PartyInviteStatus.PARTY_NOT_PRESENT -> messenger.message("§cDu musst erst eine Party erstellen (/party invite)", inviteSender)
         else                                -> messenger.message("§dHoppla, da ist wohl ein Fehlerchen aufgetreten.", inviteSender)
     }
 }
@@ -39,14 +40,22 @@ internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSend
  */
 internal fun sendPartyInvites(inviter: ProxiedPlayer, potentialIds: Array<out String>?, party: Party) {
     potentialIds?.forEach { pId ->
-        // If the invited player is on the same server as the party client we can use the Bukkit method to resolve the name to a UUID.
-        // It returns null if the player is not on the server.
-        val invited = partyBungeeClient!!.proxy.getPlayer(pId)
-        if (invited == null) {
-            PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
-                party.invite(id, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
-            })
+        if (isOnline(pId)) {
+            // If the invited player is on the same server as the party client we can use the Bukkit method to resolve the name to a UUID.
+            // It returns null if the player is not on the server.
+            val invited = partyBungeeClient!!.proxy.getPlayer(pId)
+            if (invited == null) {
+                PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
+                    party.invite(id, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
+                })
+            }
+            else party.invite(invited.uniqueId, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
         }
-        else party.invite(invited.uniqueId, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
+        else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
     }
+}
+
+
+internal fun isOnline(nameOrId: String): Boolean {
+    return PlayerResolver.getOnlinePlayerCacheEntry(nameOrId).isPresent
 }

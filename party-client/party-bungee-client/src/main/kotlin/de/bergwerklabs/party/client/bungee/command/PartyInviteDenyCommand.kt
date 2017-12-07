@@ -24,8 +24,12 @@ class PartyInviteDenyCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            // TODO: display message
-            PartyApi.respondToInvite(PartyInviteStatus.DENIED, sender.uniqueId, partyBungeeClient!!.invitedFor[sender.uniqueId]!!)
+            partyBungeeClient!!.runAsync {
+                if (PartyApi.isPartied(sender.uniqueId)) {
+                    PartyApi.respondToInvite(PartyInviteStatus.DENIED, sender.uniqueId, partyBungeeClient!!.invitedFor[sender.uniqueId]!!)
+                }
+                else partyBungeeClient!!.messenger.message("§cDu bist bereits in einer Party.", sender)
+            }
         }
     }
 }

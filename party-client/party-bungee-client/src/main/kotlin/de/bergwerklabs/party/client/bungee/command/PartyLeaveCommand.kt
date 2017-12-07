@@ -29,14 +29,20 @@ class PartyLeaveCommand : BungeeCommand {
                 partyBungeeClient!!.messenger.message("§cDu musst mindestens einen Spieler angeben.", sender)
                 return
             }
+            
+            partyBungeeClient!!.runAsync {
+                val optional = PartyApi.getParty(sender.uniqueId)
+    
+                if (optional.isPresent) {
+                    val party = optional.get()
         
-            val optional = PartyApi.getParty(sender.uniqueId)
+                    // TODO: display message to all members.
+                    // TODO: disban
         
-            if (optional.isPresent) {
-                val party = optional.get()
-                party.removeMember(sender.uniqueId, PartyUpdateAction.PLAYER_LEAVE)
+                    party.removeMember(sender.uniqueId, PartyUpdateAction.PLAYER_LEAVE)
+                }
+                else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
             }
-            else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
     }
 }

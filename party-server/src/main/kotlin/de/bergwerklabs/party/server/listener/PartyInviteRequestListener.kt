@@ -4,6 +4,7 @@ import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.api.party.packages.invite.*
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.server.*
+import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -29,12 +30,12 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
         }
         else if (currentParties.values.any { p -> p.members.contains(pkg.invitedPlayer) || p.owner == pkg.invitedPlayer }) {
             logger.info("Invited player ${pkg.invitedPlayer} is already partied.")
-            packageService.sendResponse(PartyServerInviteResponsePacket(pkg.partyId, null, pkg.sender, InviteStatus.ALREADY_PARTIED), pkg)
+            packageService.sendResponse(PartyServerInviteResponsePacket(pkg.partyId, UUID.randomUUID(), pkg.sender, InviteStatus.ALREADY_PARTIED), pkg)
             return
         }
         else {
             logger.info("Party does not exist anymore, sending error message back.")
-            packageService.sendResponse(PartyServerInviteResponsePacket(pkg.partyId, null, pkg.sender, InviteStatus.PARTY_NOT_PRESENT), pkg)
+            packageService.sendResponse(PartyServerInviteResponsePacket(pkg.partyId, UUID.randomUUID(), pkg.sender, InviteStatus.PARTY_NOT_PRESENT), pkg)
             return
         }
     
