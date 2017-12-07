@@ -37,8 +37,7 @@ class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPac
         logger.info("Creating party ${pkg.partyId} with member count of ${pkg.members.size}")
         val partyId = this.determineId()
         
-        currentParties.put(partyId, AtlantisParty(pkg.owner, pkg.members.toList(), partyId))
-        pendingInvites[pkg.partyId] = CopyOnWriteArrayList()
+        currentParties.put(partyId, AtlantisParty(pkg.owner, ArrayList(), partyId))
         packageService.sendResponse(PartyCreateResponsePacket(partyId, PartyCreateResponseType.SUCCESS), pkg)
     }
     

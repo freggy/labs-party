@@ -1,6 +1,5 @@
 package de.bergwerklabs.party.api.common
 
-
 import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateRequestPacket
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePacket
@@ -35,7 +34,7 @@ internal fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePacket
         ex.printStackTrace()
         future.cancel(true)
         // return dummy object to prevent crashes.
-        return PartyInfoResponsePacket(UUID.randomUUID(), AtlantisParty(UUID.randomUUID(), mutableListOf(UUID.randomUUID()), UUID.randomUUID()))
+        return PartyInfoResponsePacket(UUID.randomUUID(), AtlantisParty(UUID.randomUUID(), arrayListOf(UUID.randomUUID()), UUID.randomUUID()))
     }
 }
 

@@ -62,8 +62,7 @@ class PartyApi {
             val response = sendInfoPacketAndGetResponse(player)
             return response.party.members.contains(player)
         }
-    
-    
+        
         /**
          * Gets the [Optional] that contains the [Party] the player is currently a member of.
          *
@@ -79,7 +78,6 @@ class PartyApi {
             }
         }
         
-    
         /**
          * Creates a new [Party].
          *
@@ -100,10 +98,29 @@ class PartyApi {
         @JvmStatic
         fun createParty(owner: UUID, vararg members: UUID): PartyCreateResult = tryPartyCreation(owner, Arrays.asList(*members))
     
+    
+        /**
+         * Checks if a player is partied with another player.
+         *
+         * @param player1 partied player
+         * @param player2 partied player
+         * @return        if a player is partied with another player.
+         */
+        @JvmStatic
+        fun isPartiedWith(player1: UUID, player2: UUID): Boolean {
+            val optional = getParty(player1)
+            if (optional.isPresent) {
+                val party = optional.get()
+                return party.isOwner(player2) || party.isMember(player2)
+            }
+            return false
+        }
+        
         /**
          *
          */
         fun respondToInvite(status: PartyInviteStatus, respondingPlayer: UUID, request: PartyServerInviteRequestPacket) {
+            
             val resolution = when (status) {
                 PartyInviteStatus.ACCEPTED -> InviteStatus.ACCEPTED
                 PartyInviteStatus.DENIED   -> InviteStatus.DENIED

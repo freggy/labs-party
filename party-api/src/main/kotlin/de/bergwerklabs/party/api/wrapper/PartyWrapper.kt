@@ -73,6 +73,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         this.disbanded = true
         packageService.sendPackage(PartyDisbandPacket(this.id))
+        packageService.sendPackage(PartyUpdatePacket(this.id, this.owner, PartyUpdate.DISBAND))
     }
     
     /**

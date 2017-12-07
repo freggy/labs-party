@@ -24,22 +24,15 @@ class PartyLeaveCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-        
-            if (args != null && args.isEmpty()) {
-                partyBungeeClient!!.messenger.message("§cDu musst mindestens einen Spieler angeben.", sender)
-                return
-            }
             
             partyBungeeClient!!.runAsync {
                 val optional = PartyApi.getParty(sender.uniqueId)
-    
                 if (optional.isPresent) {
                     val party = optional.get()
-        
-                    // TODO: display message to all members.
-                    // TODO: disban
-        
-                    party.removeMember(sender.uniqueId, PartyUpdateAction.PLAYER_LEAVE)
+                    if (party.isOwner(sender.uniqueId)) {
+                        party.disband()
+                    }
+                    else party.removeMember(sender.uniqueId, PartyUpdateAction.PLAYER_LEAVE)
                 }
                 else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
             }

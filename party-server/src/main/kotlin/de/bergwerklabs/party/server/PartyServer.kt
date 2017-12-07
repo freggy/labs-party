@@ -9,19 +9,20 @@ import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateReques
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoRequestPacket
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteRequestPacket
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteResponsePacket
-import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteRequestPacket
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePacket
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePacket
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.server.listener.*
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.concurrent.timerTask
 
 var server: PartyServer? = null
 
 val currentParties = HashMap<UUID, AtlantisParty>()
 
-val pendingInvites = HashMap<UUID, CopyOnWriteArrayList<InviteInfo>>()
+val pendingInvites = ConcurrentHashMap<UUID, Long>()
 
 val packageService = AtlantisPackageService(
         PartyUpdatePacket::class.java,
@@ -61,19 +62,18 @@ class PartyServer {
             packageService.addListener(PartyClientInviteRequestPacket::class.java, { pkg -> PartyInviteRequestListener().onResponse(pkg) })
     
             logger.info("Starting removal of pending party invites every 30 seconds.")
-            /*
+            
             Timer().scheduleAtFixedRate(timerTask {
-                pendingInvites.entries.forEach { (partyId, infos) ->
+                pendingInvites.entries.forEach { (player, invited) ->
                     // Remove pending invites after 30 seconds.
                     // TODO: make configurable
-                    infos.forEach { info ->
-                        if ((System.currentTimeMillis() + info.invited) <= 1000 * 30) {
-                            infos.remove(info)
-                            logger.info("Invite for party $partyId for ${info.player} has been expired and removed.")
-                        }
+                    
+                    if (invited + 1000 * 30 <= System.currentTimeMillis()) {
+                        pendingInvites.remove(player)
+                        logger.info("Invite for party for $player has been expired and removed.")
                     }
                 }
-            }, 20, 1000) */
+            }, 20, 1000)
         }
     }
 }

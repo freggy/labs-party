@@ -27,7 +27,6 @@ class PartyDisbandCommand : BungeeCommand {
             partyBungeeClient!!.runAsync {
                 val optional = PartyApi.getParty(sender.uniqueId)
                 val uuid = sender.uniqueId
-    
                 if (optional.isPresent) {
                     val party = optional.get()
                     if (party.isOwner(uuid)) {

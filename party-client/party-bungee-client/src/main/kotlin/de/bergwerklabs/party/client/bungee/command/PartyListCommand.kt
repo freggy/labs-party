@@ -35,6 +35,12 @@ class PartyListCommand : BungeeCommand {
                 val optional = PartyApi.getParty(sender.uniqueId)
                 if (optional.isPresent) {
                     val party = optional.get()
+                    
+                    if (party.getMembers().isEmpty()) {
+                        partyBungeeClient!!.messenger.message("§cEs sind keine Mitglieder in deiner Party.", sender)
+                        return@runAsync
+                    }
+                    
                     if (party.isOwner(sender.uniqueId)) {
                         this.displayOwnerView(sender, party)
                     }
@@ -85,18 +91,21 @@ class PartyListCommand : BungeeCommand {
                 .append("➥").color(ChatColor.AQUA)
                     .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $ownerName"))
                     .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $ownerName teleportiert.")))
-                .append(ownerName)
+                .append(" $ownerName").color(partyBungeeClient!!.zBridge.getRankColor(party.getPartyOwner()))
                 .create()
         player.sendMessage(ChatMessageType.CHAT, *message)
         
         party.getMembers().forEach { member ->
-            val memberName = PlayerResolver.resolveUuidToName(member)
-            val msg = ComponentBuilder("■").color(ChatColor.GREEN)
-                    .append("➥").color(ChatColor.AQUA)
+            if (member != player.uniqueId) {
+                val memberName = PlayerResolver.resolveUuidToName(member)
+                val msg = ComponentBuilder("■").color(ChatColor.GREEN)
+                        .append("➥").color(ChatColor.AQUA)
                         .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $memberName"))
                         .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $memberName teleportiert.")))
-                    .create()
-            player.sendMessage(ChatMessageType.CHAT, *msg)
+                        .append(" $memberName").color(partyBungeeClient!!.zBridge.getRankColor(party.getPartyOwner()))
+                        .create()
+                player.sendMessage(ChatMessageType.CHAT, *msg)
+            }
         }
         player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-------------------------"))
     }

@@ -40,15 +40,14 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
         }
     
         logger.info("Invite is now pending, after 30 seconds it will be removed.")
-        pendingInvites.computeIfAbsent(pkg.partyId, { uuid -> CopyOnWriteArrayList() })
-        pendingInvites[pkg.partyId]!!.add(InviteInfo(pkg.invitedPlayer, System.currentTimeMillis()))
+        pendingInvites[pkg.invitedPlayer] = System.currentTimeMillis()
         
         packageService.sendPackage(PartyServerInviteRequestPacket(party.id, pkg.invitedPlayer, pkg.sender, null), PartyClientInviteResponsePacket::class.java, AtlantisPackageService.Callback { response ->
-            val responseParty = pendingInvites[pkg.partyId]
+            val responseParty = currentParties[pkg.partyId]
             val clientResponse = response as PartyClientInviteResponsePacket
             
             if (responseParty != null) { // check if party is present
-                if (responseParty.any { inviteInfo -> inviteInfo.player == clientResponse.responder }) { // check if invite is not expired.
+                if (pendingInvites.containsKey(clientResponse.responder)) { // check if invite is not expired.
                     
                     if (party.members.size >= 7) {
                         logger.info("Party is already full, sending error message back...")
@@ -56,17 +55,23 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
                     }
                     else {
                         logger.info("Sending response of invited player...")
+                        
+                        if (clientResponse.status == InviteStatus.ACCEPTED) {
+                            currentParties[clientResponse.partyId]?.members?.add(clientResponse.responder)
+                            pendingInvites.remove(clientResponse.responder)
+                        }
+                        
                         packageService.sendResponse(PartyServerInviteResponsePacket(clientResponse.partyId, clientResponse.responder, clientResponse.initalSender, clientResponse.status), pkg)
                     }
                 }
                 else {
                     logger.info("Party invitation expired, sending error message back...")
-                    packageService.sendResponse(PartyServerInviteResponsePacket(clientResponse.partyId, clientResponse.responder, clientResponse.initalSender, InviteStatus.EXPIRED), pkg)
+                    packageService.sendPackage(PartyServerInviteResponsePacket(clientResponse.partyId, clientResponse.responder, clientResponse.initalSender, InviteStatus.EXPIRED))
                 }
             }
             else {
                 logger.info("Party not present anymore, sending error message back...")
-                packageService.sendResponse(PartyServerInviteResponsePacket(clientResponse.partyId, clientResponse.responder, clientResponse.initalSender, InviteStatus.PARTY_NOT_PRESENT), pkg)
+                packageService.sendPackage(PartyServerInviteResponsePacket(clientResponse.partyId, clientResponse.responder, clientResponse.initalSender, InviteStatus.PARTY_NOT_PRESENT))
             }
         })
     }

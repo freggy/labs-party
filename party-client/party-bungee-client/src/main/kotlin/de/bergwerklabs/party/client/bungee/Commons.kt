@@ -5,6 +5,7 @@ import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import java.util.*
 import java.util.function.Consumer
 
 /**
@@ -15,20 +16,21 @@ import java.util.function.Consumer
  */
 internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSender: ProxiedPlayer) {
     val messenger = partyBungeeClient!!.messenger
-    val playerName = PlayerResolver.resolveUuidToName(response.playerUuid)
     
-    // TODO: use rank color
-    
-    when (response.status) {
-        PartyInviteStatus.ACCEPTED          -> {
-            // TODO: display to all members
-            messenger.message("§a✚§r $playerName §bist der Party beigetreten.", inviteSender)
+    PlayerResolver.resolveUuidToName(response.playerUuid).ifPresent({
+        val color = partyBungeeClient!!.zBridge.getRankColor(response.playerUuid).toString()
+        
+        when (response.status) {
+            PartyInviteStatus.ACCEPTED          -> {
+                // TODO: display to all members
+                messenger.message("§a✚§r $color$it §bist der Party beigetreten.", inviteSender)
+            }
+            PartyInviteStatus.DENIED            -> messenger.message("§c✖§r $color$it §bhat die Einaldung abgelehnt.", inviteSender)
+            PartyInviteStatus.ALREADY_PARTIED   -> messenger.message("$color$it §cist bereits in einer Party", inviteSender)
+            PartyInviteStatus.PARTY_NOT_PRESENT -> messenger.message("§cDu musst erst eine Party erstellen", inviteSender)
+            PartyInviteStatus.PARTY_FULL        -> messenger.message("§cDie Party ist voll.", inviteSender)
         }
-        PartyInviteStatus.DENIED            -> messenger.message("§c✖§r $playerName §bhat die Einaldung abgelehnt.", inviteSender)
-        PartyInviteStatus.ALREADY_PARTIED   -> messenger.message("§c§a$playerName ist bereits in einer Party", inviteSender)
-        PartyInviteStatus.PARTY_NOT_PRESENT -> messenger.message("§cDu musst erst eine Party erstellen (/party invite)", inviteSender)
-        else                                -> messenger.message("§dHoppla, da ist wohl ein Fehlerchen aufgetreten.", inviteSender)
-    }
+    })
 }
 
 /**
@@ -54,6 +56,25 @@ internal fun sendPartyInvites(inviter: ProxiedPlayer, potentialIds: Array<out St
         else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
     }
 }
+
+internal fun handlePartyUpdate(party: Party, affected: UUID, memberMessage: String, affectedMessage: String) {
+    
+    val color = partyBungeeClient!!.zBridge.getRankColor(affected).toString()
+    val name = PlayerResolver.resolveUuidToName(affected)
+    
+    
+    partyBungeeClient!!.proxy.getPlayer(affected).let {
+        partyBungeeClient!!.messenger.message(affectedMessage, it)
+    }
+    
+    party.getMembers()
+            .filter  { memberUuid -> memberUuid != affected }
+            .map     { memberUuid -> partyBungeeClient!!.proxy.getPlayer(memberUuid) }
+            .filter  { member -> Objects.nonNull(member) }
+            .forEach { member ->  partyBungeeClient!!.messenger.message(memberMessage.replace("{c}", color).replace("{p}", name.orElse(":(")), member) }
+    
+}
+
 
 
 internal fun isOnline(nameOrId: String): Boolean {

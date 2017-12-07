@@ -17,5 +17,7 @@ class PartyOwnerChangedListener : AtlantisPackageListener<PartyChangeOwnerPacket
     override fun onResponse(pkg: PartyChangeOwnerPacket) {
         logger.info("Changed owner of party ${pkg.partyId} from ${pkg.oldOwner} to ${pkg.newOwner}")
         currentParties[pkg.partyId]?.owner = pkg.newOwner
+        currentParties[pkg.partyId]?.members?.remove(pkg.newOwner)
+        currentParties[pkg.partyId]?.members?.add(pkg.oldOwner)
     }
 }

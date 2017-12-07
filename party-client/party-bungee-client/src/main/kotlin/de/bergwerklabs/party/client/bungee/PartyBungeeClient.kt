@@ -1,8 +1,15 @@
 package de.bergwerklabs.party.client.bungee
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
+import de.bergwerklabs.atlantis.api.party.packages.PartyChangeOwnerPacket
+import de.bergwerklabs.atlantis.api.party.packages.PartyChatPacket
+import de.bergwerklabs.atlantis.api.party.packages.PartyDisbandPacket
 import de.bergwerklabs.atlantis.api.party.packages.PartySwitchServerPacket
+import de.bergwerklabs.atlantis.api.party.packages.invite.InviteStatus
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteRequestPacket
+import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePacket
+import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
+import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePacket
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.framework.commons.bungee.chat.PluginMessenger
@@ -38,13 +45,19 @@ class PartyBungeeClient : Plugin(), Listener {
     
     val messenger = PluginMessenger("Party")
     
-    val zBridge = ZBridge()
+    val zBridge = ZBridge("admin", "LphX3VULzQVgp2ry3f2ypkZKE5YeufMtaamfeNNNwZbLWyqm")
+    
+    val packageService = AtlantisPackageService(
+            PartyServerInviteRequestPacket::class.java,
+            PartySwitchServerPacket::class.java,
+            PartyUpdatePacket::class.java,
+            PartyServerInviteResponsePacket::class.java,
+            PartyDisbandPacket::class.java,
+            PartyChatPacket::class.java,
+            PartyChangeOwnerPacket::class.java
+    )
     
     private val logger = AtlantisLogger.getLogger(this::class.java)
-    
-    private val packageService = AtlantisPackageService(
-            PartyServerInviteRequestPacket::class.java,
-            PartySwitchServerPacket::class.java)
     
     override fun onEnable() {
         partyBungeeClient = this
@@ -56,14 +69,18 @@ class PartyBungeeClient : Plugin(), Listener {
                 "",
                 null,
                 PartyKickCommand(),
+                PartyDisbandCommand(),
                 PartyInviteCommand(),
                 PartyInviteAcceptCommand(),
                 PartyInviteDenyCommand(),
                 PartyCreateCommand(),
+                PartyLeaveCommand(),
+                PartyChatCommand(),
+                PartyPromoteCommand(),
                 PartyListCommand()
         ))
-        
-        packageService.addListener(PartySwitchServerPacket::class.java, { pkg ->
+    
+        this.packageService.addListener(PartySwitchServerPacket::class.java, { pkg ->
             PartyApi.getParty(pkg.partyId).ifPresent {
                 it.getMembers().forEach { member ->
                     val player = this.proxy.getPlayer(member)
@@ -75,7 +92,52 @@ class PartyBungeeClient : Plugin(), Listener {
             }
         })
     
-        packageService.addListener(PartyServerInviteRequestPacket::class.java, { pkg ->
+        this.packageService.addListener(PartyUpdatePacket::class.java, { pkg ->
+            println("${pkg.update}")
+            println(PartyApi.getParty(pkg.player).isPresent)
+            
+            PartyApi.getParty(pkg.player).ifPresent {
+                when (pkg.update) {
+                    PartyUpdate.PLAYER_JOIN  -> handlePartyUpdate(it, pkg.player, "§a✚ {c}{p} §bist der Party beigetreten.", "§aDu bist der Party beigetreten.")
+                    PartyUpdate.PLAYER_LEAVE -> handlePartyUpdate(it, pkg.player, "§c✖ {c}{p} §bhat die Party verlassen.", "§cDu hast die Party verlassen.")
+                    PartyUpdate.PLAYER_KICK  -> handlePartyUpdate(it, pkg.player, "§c✖ {c}{p} §4wurde aus der Party entfernt", "§4Du wurdest aus der Party entfernt.")
+                    PartyUpdate.DISBAND      -> {
+                        it.getMembers().forEach { member ->
+                            this.proxy.getPlayer(member).let {
+                                this.messenger.message("§cDie Party wurde aufgelöst.", it)
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    
+        this.packageService.addListener(PartyServerInviteResponsePacket::class.java, { pkg ->
+            this.proxy.getPlayer(pkg.responder).let {
+                when (pkg.status) {
+                    InviteStatus.PARTY_NOT_PRESENT -> this.messenger.message("§cDie Party is nicht mehr verfügbar", it)
+                    InviteStatus.PARTY_FULL        -> this.messenger.message("§cDie Party is voll.", it)
+                    InviteStatus.EXPIRED           -> this.messenger.message("§cDeine Einladung ist abgelaufen.", it)
+                }
+            }
+        })
+        
+        this.packageService.addListener(PartyChatPacket::class.java, { pkg ->
+            pkg.recipients.forEach { recp ->
+                this.proxy.getPlayer(recp).let {
+                    val color = zBridge.getRankColor(pkg.sender.uuid).toString()
+                    this.messenger.message("$color${pkg.sender.name} §8»§r ${pkg.message}", it)
+                }
+            }
+        })
+        
+        this.packageService.addListener(PartyChangeOwnerPacket::class.java, { pkg ->
+            this.proxy.getPlayer(pkg.newOwner).let {
+                this.messenger.message("§bDu bist nun Party-Owner", it)
+            }
+        })
+    
+        this.packageService.addListener(PartyServerInviteRequestPacket::class.java, { pkg ->
             this.proxy.getPlayer(pkg.responder).let {
                 val initialSenderName = PlayerResolver.resolveUuidToName(pkg.initalSender).get()
             
@@ -104,14 +166,11 @@ class PartyBungeeClient : Plugin(), Listener {
     }
     
     fun runAsync(method: (Unit) -> Unit) {
-        this.proxy.scheduler.runAsync(this, {
-            method.invoke(Unit)
-        })
+        this.proxy.scheduler.runAsync(this, { method.invoke(Unit) })
     }
     
-    
     @EventHandler
-    fun onPlayerDisconnectServer(event: PlayerDisconnectEvent) { // TODO: change evenmt
+    fun onPlayerDisconnectServer(event: PlayerDisconnectEvent) {
         val player = event.player
         this.runAsync {
             PlayerResolver.resolveNameToUuid(player.name).ifPresent { uuid ->

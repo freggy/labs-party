@@ -1,8 +1,11 @@
 package de.bergwerklabs.party.client.bungee.command
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
+import de.bergwerklabs.atlantis.api.party.packages.PartyChatPacket
 import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.PartyApi
+import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
 
@@ -23,20 +26,18 @@ class PartyChatCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
+            
             val optional = PartyApi.getParty(sender.uniqueId)
             if (optional.isPresent) {
                 val party = optional.get()
-                party.getMembers().forEach { uuid ->
-                    val name = PlayerResolver.resolveUuidToName(uuid).get()
-                    // TODO: use rank color
-                    // TODO: send message
-                }
+                partyBungeeClient!!.packageService.sendPackage(PartyChatPacket(
+                        party.getPartyId(),
+                        party.getMembers().toHashSet(),
+                        PlayerNameToUuidMapping(sender.name, sender.uniqueId),
+                        args!!.copyOfRange(0, args.size).joinToString(" ")
+                ))
             }
-            else {
-                /*
-                bukkitClient!!.messenger.message("§cDu bist in keiner Party.", sender)
-                sender.playSound(sender.eyeLocation, Sound.NOTE_BASS, 1F, 100F) */
-            }
+            else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
     }
 }
