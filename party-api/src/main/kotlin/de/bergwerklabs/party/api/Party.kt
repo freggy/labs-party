@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.api
 
+import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
@@ -79,4 +80,9 @@ interface Party {
      * Saves the party.
      */
     fun save()
+    
+    /**
+     * Creates an [AtlantisParty] object.
+     */
+    fun toAtlantisParty(): AtlantisParty
 }

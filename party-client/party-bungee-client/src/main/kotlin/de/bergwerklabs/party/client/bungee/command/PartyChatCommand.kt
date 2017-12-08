@@ -31,7 +31,7 @@ class PartyChatCommand : BungeeCommand {
             if (optional.isPresent) {
                 val party = optional.get()
                 partyBungeeClient!!.packageService.sendPackage(PartyChatPacket(
-                        party.getPartyId(),
+                        party.toAtlantisParty(),
                         party.getMembers().toHashSet(),
                         PlayerNameToUuidMapping(sender.name, sender.uniqueId),
                         args!!.copyOfRange(0, args.size).joinToString(" ")

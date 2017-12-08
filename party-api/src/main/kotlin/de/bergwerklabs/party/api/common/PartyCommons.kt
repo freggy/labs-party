@@ -61,7 +61,7 @@ internal fun tryPartyCreation(owner: UUID, members: List<UUID>): PartyCreateResu
     return when {
         response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT)
         response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_PREMIUM -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_PREMIUM)
-        response.type == PartyCreateResponseType.SUCCESS                       -> PartyCreateResult(Optional.of(PartyWrapper(response.partyId, owner, members.toMutableList())), PartyCreateStatus.SUCCESS)
+        response.type == PartyCreateResponseType.SUCCESS                       -> PartyCreateResult(Optional.of(PartyWrapper(response.party.id, owner, members.toMutableList())), PartyCreateStatus.SUCCESS)
         response.type == PartyCreateResponseType.ALREADY_PARTIED               -> PartyCreateResult(Optional.empty(), PartyCreateStatus.ALREADY_PARTIED)
         else                                                                   -> PartyCreateResult(Optional.empty(), PartyCreateStatus.UNKNOWN_ERROR)
     }
@@ -81,5 +81,5 @@ internal fun wrapPartyInviteResponse(response: PartyServerInviteResponsePacket):
         InviteStatus.PARTY_NOT_PRESENT -> PartyInviteStatus.PARTY_NOT_PRESENT
         InviteStatus.ALREADY_PARTIED   -> PartyInviteStatus.ALREADY_PARTIED
     }
-    return PartyInviteResponse(response.responder, status, response.partyId)
+    return PartyInviteResponse(response.responder, status, response.party.id)
 }

@@ -15,9 +15,9 @@ class PartyOwnerChangedListener : AtlantisPackageListener<PartyChangeOwnerPacket
     private val logger = AtlantisLogger.getLogger(this::class.java)
     
     override fun onResponse(pkg: PartyChangeOwnerPacket) {
-        logger.info("Changed owner of party ${pkg.partyId} from ${pkg.oldOwner} to ${pkg.newOwner}")
-        currentParties[pkg.partyId]?.owner = pkg.newOwner
-        currentParties[pkg.partyId]?.members?.remove(pkg.newOwner)
-        currentParties[pkg.partyId]?.members?.add(pkg.oldOwner)
+        logger.info("Changed owner of party ${pkg.party.id} from ${pkg.oldOwner} to ${pkg.newOwner}")
+        currentParties[pkg.party.id]?.owner = pkg.newOwner
+        currentParties[pkg.party.id]?.members?.remove(pkg.newOwner)
+        currentParties[pkg.party.id]?.members?.add(pkg.oldOwner)
     }
 }

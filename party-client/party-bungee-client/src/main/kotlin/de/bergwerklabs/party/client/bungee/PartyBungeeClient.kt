@@ -81,31 +81,24 @@ class PartyBungeeClient : Plugin(), Listener {
         ))
     
         this.packageService.addListener(PartySwitchServerPacket::class.java, { pkg ->
-            PartyApi.getParty(pkg.partyId).ifPresent {
-                it.getMembers().forEach { member ->
-                    val player = this.proxy.getPlayer(member)
-                    // only move players registered to this client
-                    if (player != null) {
-                        // TODO: connect
-                    }
+            pkg.party.members.forEach { member ->
+                val player = this.proxy.getPlayer(member)
+                // only move players registered to this client
+                if (player != null) {
+                
                 }
             }
         })
     
         this.packageService.addListener(PartyUpdatePacket::class.java, { pkg ->
-            println("${pkg.update}")
-            println(PartyApi.getParty(pkg.player).isPresent)
-            
-            PartyApi.getParty(pkg.player).ifPresent {
-                when (pkg.update) {
-                    PartyUpdate.PLAYER_JOIN  -> handlePartyUpdate(it, pkg.player, "§a✚ {c}{p} §bist der Party beigetreten.", "§aDu bist der Party beigetreten.")
-                    PartyUpdate.PLAYER_LEAVE -> handlePartyUpdate(it, pkg.player, "§c✖ {c}{p} §bhat die Party verlassen.", "§cDu hast die Party verlassen.")
-                    PartyUpdate.PLAYER_KICK  -> handlePartyUpdate(it, pkg.player, "§c✖ {c}{p} §4wurde aus der Party entfernt", "§4Du wurdest aus der Party entfernt.")
-                    PartyUpdate.DISBAND      -> {
-                        it.getMembers().forEach { member ->
-                            this.proxy.getPlayer(member).let {
-                                this.messenger.message("§cDie Party wurde aufgelöst.", it)
-                            }
+            when (pkg.update) {
+                PartyUpdate.PLAYER_JOIN  -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§a✚ {c}{p} §bist der Party beigetreten.", "§aDu bist der Party beigetreten.")
+                PartyUpdate.PLAYER_LEAVE -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§c✖ {c}{p} §bhat die Party verlassen.", "§cDu hast die Party verlassen.")
+                PartyUpdate.PLAYER_KICK  -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§c✖ {c}{p} §4wurde aus der Party entfernt", "§4Du wurdest aus der Party entfernt.")
+                PartyUpdate.DISBAND      -> {
+                    pkg.party.members.forEach { member ->
+                        this.proxy.getPlayer(member).let {
+                            this.messenger.message("§cDie Party wurde aufgelöst.", it)
                         }
                     }
                 }
@@ -188,7 +181,6 @@ class PartyBungeeClient : Plugin(), Listener {
         }
     }
     
-    
     @EventHandler
     fun onPlayerConnectServer(event: ServerConnectEvent) {
         val player = event.player
@@ -205,7 +197,7 @@ class PartyBungeeClient : Plugin(), Listener {
                 
                         if (lobbyToGameserver || gameserverToLobby) {
                             this.logger.info("Party owner switched the server, party members will be moved as well.")
-                            this.packageService.sendPackage(PartySwitchServerPacket(it.getPartyId(), event.target.name))
+                            this.packageService.sendPackage(PartySwitchServerPacket(it.toAtlantisParty(), event.target.name))
                         }
                     }
                 }

@@ -15,7 +15,7 @@ class PartyDisbandListener : AtlantisPackageListener<PartyDisbandPacket>() {
     private val logger = AtlantisLogger.getLogger(this::class.java)
     
     override fun onResponse(pkg: PartyDisbandPacket) {
-        logger.info("Disbanding party ${pkg.partyId}")
-        currentParties.remove(pkg.partyId)
+        logger.info("Disbanding party ${pkg.party.id}")
+        currentParties.remove(pkg.party.id)
     }
 }

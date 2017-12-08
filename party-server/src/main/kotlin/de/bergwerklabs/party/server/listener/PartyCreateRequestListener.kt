@@ -25,20 +25,22 @@ class PartyCreateRequestListener : AtlantisPackageListener<PartyCreateRequestPac
     override fun onResponse(pkg: PartyCreateRequestPacket) {
         if (currentParties.values.any { party -> party.members.contains(pkg.owner) || party.owner == pkg.owner }) {
             logger.info("Cannot create party because requesting player is already partied.")
-            packageService.sendResponse(PartyCreateResponsePacket(pkg.partyId, PartyCreateResponseType.ALREADY_PARTIED), pkg)
+            packageService.sendResponse(PartyCreateResponsePacket(pkg.party, PartyCreateResponseType.ALREADY_PARTIED), pkg)
             return
         }
         else if (pkg.members.size > 7) { // TODO: make configurable && maybe check if owner is premium
-            logger.info("Too much party members for party ${pkg.partyId}. Party member count: ${pkg.members.size}")
-            packageService.sendResponse(PartyCreateResponsePacket(pkg.partyId, PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT), pkg)
+            logger.info("Too much party members for party ${pkg.party.id}. Party member count: ${pkg.members.size}")
+            packageService.sendResponse(PartyCreateResponsePacket(pkg.party, PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT), pkg)
             return
         }
         
-        logger.info("Creating party ${pkg.partyId} with member count of ${pkg.members.size}")
         val partyId = this.determineId()
+        logger.info("Creating party $partyId with member count of ${pkg.members.size}")
         
-        currentParties.put(partyId, AtlantisParty(pkg.owner, ArrayList(), partyId))
-        packageService.sendResponse(PartyCreateResponsePacket(partyId, PartyCreateResponseType.SUCCESS), pkg)
+        val party = AtlantisParty(pkg.owner, ArrayList(), partyId)
+        
+        currentParties.put(partyId, party)
+        packageService.sendResponse(PartyCreateResponsePacket(party, PartyCreateResponseType.SUCCESS), pkg)
     }
     
     /**

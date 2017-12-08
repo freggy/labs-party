@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.api
 
+import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePacket
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePacket
 import de.bergwerklabs.atlantis.api.party.packages.invite.*
@@ -126,7 +127,9 @@ class PartyApi {
                 PartyInviteStatus.DENIED   -> InviteStatus.DENIED
                 else                       -> InviteStatus.DENIED
             }
-            packageService.sendResponse(PartyClientInviteResponsePacket(request.partyId, respondingPlayer, request.initalSender, resolution), request)
+            packageService.sendResponse(PartyClientInviteResponsePacket(request.party, respondingPlayer, request.initalSender, resolution), request)
         }
+        
+        fun toParty(party: AtlantisParty): Party = PartyWrapper(party.id, party.owner, party.members)
     }
 }

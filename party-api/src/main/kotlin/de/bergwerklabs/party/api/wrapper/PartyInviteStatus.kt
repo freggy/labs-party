@@ -8,5 +8,10 @@ package de.bergwerklabs.party.api.wrapper
  * @author Yannic Rieger
  */
 enum class PartyInviteStatus {
-    ACCEPTED, DENIED, EXPIRED, PARTY_FULL, PARTY_NOT_PRESENT, ALREADY_PARTIED
+    ACCEPTED,
+    DENIED,
+    EXPIRED,
+    PARTY_FULL,
+    PARTY_NOT_PRESENT,
+    ALREADY_PARTIED
 }
