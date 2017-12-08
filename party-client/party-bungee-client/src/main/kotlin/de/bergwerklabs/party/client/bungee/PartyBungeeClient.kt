@@ -22,6 +22,7 @@ import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatMessageType
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ComponentBuilder
+import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PlayerDisconnectEvent
 import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.event.ServerDisconnectEvent
@@ -85,7 +86,11 @@ class PartyBungeeClient : Plugin(), Listener {
                 val player = this.proxy.getPlayer(member)
                 // only move players registered to this client
                 if (player != null) {
-                
+                    val server = this.proxy.servers[pkg.serverName]
+                    if (server != null) {
+                        player.connect(server)
+                    }
+                    else player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6>> §eColumbia §6❘ §cDieser Server ist nicht mehr online."))
                 }
             }
         })
