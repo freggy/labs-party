@@ -50,7 +50,9 @@ class PartyWarpCommand : BungeeCommand {
                     if (execute) {
                         val info = entry.currentServer
                         if (entry != info) {
-                            sender.connect(partyBungeeClient!!.proxy.getServerInfo("${info.containerId}_${info.service}"))
+                            partyBungeeClient!!.proxy.getServerInfo("${info.containerId}_${info.service}")?.let {
+                                sender.connect(it)
+                            }
                         }
                     }
                 }
