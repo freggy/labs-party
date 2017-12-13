@@ -51,7 +51,7 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
                     
                     if (party.members.size >= 7) {
                         logger.info("Party is already full, sending error message back...")
-                        packageService.sendResponse(PartyServerInviteResponsePacket(responseParty, clientResponse.responder, clientResponse.initalSender, InviteStatus.PARTY_FULL), pkg)
+                        packageService.sendPackage(PartyServerInviteResponsePacket(responseParty, clientResponse.responder, clientResponse.initalSender, InviteStatus.PARTY_FULL))
                     }
                     else {
                         logger.info("Sending response of invited player...")
@@ -61,7 +61,7 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
                             pendingInvites.remove(clientResponse.responder)
                         }
                         
-                        packageService.sendResponse(PartyServerInviteResponsePacket(clientResponse.party, clientResponse.responder, clientResponse.initalSender, clientResponse.status), pkg)
+                        packageService.sendPackage(PartyServerInviteResponsePacket(clientResponse.party, clientResponse.responder, clientResponse.initalSender, clientResponse.status))
                     }
                 }
                 else {

@@ -4,9 +4,13 @@ import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePacket
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePacket
 import de.bergwerklabs.atlantis.api.party.packages.invite.*
+import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
+import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePacket
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
+import de.bergwerklabs.party.api.common.invites
 import de.bergwerklabs.party.api.common.sendInfoPacketAndGetResponse
 import de.bergwerklabs.party.api.common.tryPartyCreation
+import de.bergwerklabs.party.api.common.wrapPartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
@@ -25,6 +29,13 @@ internal val packageService = AtlantisPackageService(PartyInfoResponsePacket::cl
  * @author Yannic Rieger
  */
 class PartyApi {
+    
+    
+    init {
+        packageService.addListener(PartyServerInviteResponsePacket::class.java, { pkg ->
+            invites[pkg.initalSender]?.accept(wrapPartyInviteResponse(pkg as PartyServerInviteResponsePacket))
+        })
+    }
     
     companion object {
         
@@ -127,6 +138,11 @@ class PartyApi {
                 PartyInviteStatus.DENIED   -> InviteStatus.DENIED
                 else                       -> InviteStatus.DENIED
             }
+            
+            if (resolution == InviteStatus.ACCEPTED) {
+                packageService.sendPackage(PartyUpdatePacket(request.party, respondingPlayer, PartyUpdate.PLAYER_JOIN))
+            }
+            
             packageService.sendResponse(PartyClientInviteResponsePacket(request.party, respondingPlayer, request.initalSender, resolution), request)
         }
         

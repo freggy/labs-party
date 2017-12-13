@@ -19,15 +19,9 @@ class PartyUpdatePackageListener : AtlantisPackageListener<PartyUpdatePacket>() 
     
     override fun onResponse(pkg: PartyUpdatePacket) {
         when (pkg.update) {
-            PartyUpdate.PLAYER_JOIN  -> this.handlePlayerJoin(pkg.player, pkg.party.id)
             PartyUpdate.PLAYER_KICK  -> this.handlePlayerKick(pkg.player, pkg.party.id)
             PartyUpdate.PLAYER_LEAVE -> this.handlePlayerLeave(pkg.player, pkg.party.id)
         }
-    }
-    
-    private fun handlePlayerJoin(player: UUID, partyId: UUID) {
-        logger.info("Player $player joined party $partyId")
-        currentParties[partyId]?.members?.add(player)
     }
     
     private fun handlePlayerKick(player: UUID, partyId: UUID) {

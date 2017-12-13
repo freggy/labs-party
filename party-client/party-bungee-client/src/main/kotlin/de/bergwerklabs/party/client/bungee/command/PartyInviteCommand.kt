@@ -31,7 +31,7 @@ class PartyInviteCommand : BungeeCommand {
                     val party = optional.get()
                     sendPartyInvites(sender, args, party)
                 }
-                else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
+                else PartyCreateCommand().execute(sender, args)
             }
         }
     }

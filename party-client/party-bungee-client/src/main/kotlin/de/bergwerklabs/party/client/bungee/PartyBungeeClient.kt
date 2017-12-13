@@ -42,13 +42,13 @@ var partyBungeeClient: PartyBungeeClient? = null
  */
 class PartyBungeeClient : Plugin(), Listener {
     
-    val invitedFor = HashMap<UUID, PartyServerInviteRequestPacket>()
+    internal val invitedFor = HashMap<UUID, PartyServerInviteRequestPacket>()
     
-    val messenger = PluginMessenger("Party")
+    internal val messenger = PluginMessenger("Party")
     
-    val zBridge = ZBridge()
+    internal val zBridge = ZBridge()
     
-    val packageService = AtlantisPackageService(
+    internal val packageService = AtlantisPackageService(
             PartyServerInviteRequestPacket::class.java,
             PartySwitchServerPacket::class.java,
             PartyUpdatePacket::class.java,
@@ -116,7 +116,6 @@ class PartyBungeeClient : Plugin(), Listener {
                     InviteStatus.PARTY_NOT_PRESENT -> this.messenger.message("§cDie Party is nicht mehr verfügbar", it)
                     InviteStatus.PARTY_FULL        -> this.messenger.message("§cDie Party is voll.", it)
                     InviteStatus.EXPIRED           -> this.messenger.message("§cDeine Einladung ist abgelaufen.", it)
-                    InviteStatus.ACCEPTED          -> this.messenger.message("§aDu hast die Einladung angenommen.", it)
                 }
             }
         })
@@ -139,22 +138,23 @@ class PartyBungeeClient : Plugin(), Listener {
         this.packageService.addListener(PartyServerInviteRequestPacket::class.java, { pkg ->
             this.proxy.getPlayer(pkg.responder)?.let {
                 val initialSenderName = PlayerResolver.resolveUuidToName(pkg.initalSender).get()
-            
+                val initalSenderColor = zBridge.getRankColor(pkg.initalSender).toString()
+    
                 // nasty little workaround to get the fancy message centered as well.
                 val spaces = MessageUtil.getSpacesToCenter("§a[ANNEHMEN]§6 | §c[ABLEHNEN]")
                 val builder = StringBuilder()
                 for (i in 0..spaces) builder.append(" ")
-            
+    
                 val message = ComponentBuilder("$builder§a[ANNEHMEN]").color(ChatColor.GREEN)
                             .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party accept"))
                         .append(" ❘ ").color(ChatColor.GOLD)
                         .append("[ABLEHNEN]").color(ChatColor.RED)
                             .event(ClickEvent(ClickEvent.Action.RUN_COMMAND,"/party deny"))
                         .create()
-            
+                
                 MessageUtil.sendCenteredMessage(it, "§6§m-------§b Party-Einladung §6§m-------")
                 MessageUtil.sendCenteredMessage(it, " ")
-                MessageUtil.sendCenteredMessage(it, "§7Du hast eine Einladung von §a$initialSenderName §7erhalten.")
+                MessageUtil.sendCenteredMessage(it, "§7Du hast eine Einladung von $initalSenderColor$initialSenderName §7erhalten.")
                 MessageUtil.sendCenteredMessage(it," ")
                 it.sendMessage(ChatMessageType.CHAT, *message)
                 MessageUtil.sendCenteredMessage(it," ")
@@ -192,21 +192,21 @@ class PartyBungeeClient : Plugin(), Listener {
         val player = event.player
         
         this.runAsync {
-                PartyApi.getParty(player.uniqueId).ifPresent {
-                    if (it.isOwner(player.uniqueId)) {
-                        val from = player.server.info.name
-                        val to = event.target.name
+            PartyApi.getParty(player.uniqueId).ifPresent {
+                if (it.isOwner(player.uniqueId)) {
+                    val from = player.server.info.name
+                    val to = event.target.name
                         
-                        if (to == null || from == null) return@ifPresent
+                    if (to == null || from == null) return@ifPresent
                         
-                        val lobbyToGameserver = from.contains("lobby") && !to.contains("lobby")
+                    val lobbyToGameserver = from.contains("lobby") && !to.contains("lobby")
                 
-                        if (lobbyToGameserver) {
-                            this.logger.info("Party owner switched the server, party members will be moved as well.")
-                            this.packageService.sendPackage(PartySwitchServerPacket(it.toAtlantisParty(), event.target.name))
-                        }
+                    if (lobbyToGameserver) {
+                        this.logger.info("Party owner switched the server, party members will be moved as well.")
+                        this.packageService.sendPackage(PartySwitchServerPacket(it.toAtlantisParty(), event.target.name))
                     }
                 }
+            }
         }
     }
 }

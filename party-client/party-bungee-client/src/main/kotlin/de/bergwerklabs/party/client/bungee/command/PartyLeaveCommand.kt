@@ -33,7 +33,6 @@ class PartyLeaveCommand : BungeeCommand {
                         party.disband()
                     }
                     else party.removeMember(sender.uniqueId, PartyUpdateAction.PLAYER_LEAVE)
-                    partyBungeeClient!!.messenger.message("§cDu hast die Party verlassen.", sender)
                 }
                 else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
             }

@@ -7,6 +7,7 @@ import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.*
 import java.util.function.Consumer
+import kotlin.collections.HashSet
 
 /**
  * Handles the response of a party invitation.
@@ -61,12 +62,14 @@ internal fun handlePartyUpdate(party: Party, affected: UUID, memberMessage: Stri
     val color = partyBungeeClient!!.zBridge.getRankColor(affected).toString()
     val name = PlayerResolver.resolveUuidToName(affected)
     
-    
     partyBungeeClient!!.proxy.getPlayer(affected)?.let {
         partyBungeeClient!!.messenger.message(affectedMessage, it)
     }
     
-    party.getMembers()
+    val set = HashSet(party.getMembers())
+    set.add(party.getPartyOwner())
+    
+    set
             .filter  { memberUuid -> memberUuid != affected }
             .map     { memberUuid -> partyBungeeClient!!.proxy.getPlayer(memberUuid) }
             .filter  { member -> Objects.nonNull(member) }

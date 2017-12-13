@@ -18,6 +18,10 @@ import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.function.Consumer
+import kotlin.collections.HashMap
+
+internal val invites = HashMap<UUID, Consumer<PartyInviteResponse>>()
 
 /**
  * Sends a [PartyInfoRequestPackage] and waits until the packet is received.

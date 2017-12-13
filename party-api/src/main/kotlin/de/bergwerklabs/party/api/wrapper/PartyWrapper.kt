@@ -10,6 +10,7 @@ import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePacket
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.api.Party
+import de.bergwerklabs.party.api.common.invites
 import de.bergwerklabs.party.api.common.wrapPartyInviteResponse
 import de.bergwerklabs.party.api.packageService
 import java.util.*
@@ -99,10 +100,8 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
      */
     override fun invite(player: UUID, sender: UUID, callback: Consumer<PartyInviteResponse>) {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
-    
-        packageService.sendPackage(PartyClientInviteRequestPacket(this.toAtlantisParty(), sender, player), PartyServerInviteResponsePacket::class.java, AtlantisPackageService.Callback { pkg ->
-            callback.accept(wrapPartyInviteResponse(pkg as PartyServerInviteResponsePacket))
-        })
+        invites[sender] = callback
+        packageService.sendPackage(PartyClientInviteRequestPacket(this.toAtlantisParty(), sender, player))
     }
     
     /**
