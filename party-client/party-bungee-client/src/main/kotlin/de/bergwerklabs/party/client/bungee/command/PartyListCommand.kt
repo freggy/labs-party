@@ -97,12 +97,12 @@ class PartyListCommand : BungeeCommand {
         
         party.getMembers().forEach { member ->
             if (member != player.uniqueId) {
-                val memberName = PlayerResolver.resolveUuidToName(member)
+                val memberName = PlayerResolver.resolveUuidToName(member).orElse(":(")
                 val msg = ComponentBuilder("■").color(ChatColor.GREEN)
                         .append("➥").color(ChatColor.AQUA)
                         .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $memberName"))
                         .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $memberName teleportiert.")))
-                        .append(" $memberName").color(partyBungeeClient!!.zBridge.getRankColor(party.getPartyOwner()))
+                        .append(" $memberName").color(partyBungeeClient!!.zBridge.getRankColor(member))
                         .create()
                 player.sendMessage(ChatMessageType.CHAT, *msg)
             }

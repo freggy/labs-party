@@ -30,7 +30,6 @@ class PartyPromoteCommand : BungeeCommand {
                     val party = optional.get()
                     if (party.isOwner(sender.uniqueId)) {
                         PlayerResolver.resolveNameToUuid(args!![0]).ifPresent {
-                            // TODO: display message
                             party.changeOwner(it)
                         }
                     }

@@ -21,10 +21,7 @@ internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSend
         val color = partyBungeeClient!!.zBridge.getRankColor(response.playerUuid).toString()
         
         when (response.status) {
-            PartyInviteStatus.ACCEPTED          -> {
-                // TODO: display to all members
-                messenger.message("§a✚§r $color$it §bist der Party beigetreten.", inviteSender)
-            }
+            PartyInviteStatus.ACCEPTED          -> messenger.message("§a✚§r $color$it §bist der Party beigetreten.", inviteSender)
             PartyInviteStatus.DENIED            -> messenger.message("§c✖§r $color$it §bhat die Einaldung abgelehnt.", inviteSender)
             PartyInviteStatus.ALREADY_PARTIED   -> messenger.message("$color$it §cist bereits in einer Party", inviteSender)
             PartyInviteStatus.PARTY_NOT_PRESENT -> messenger.message("§cDu musst erst eine Party erstellen", inviteSender)
@@ -42,28 +39,30 @@ internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSend
  */
 internal fun sendPartyInvites(inviter: ProxiedPlayer, potentialIds: Array<out String>?, party: Party) {
     potentialIds?.forEach { pId ->
-        if (isOnline(pId)) {
-            // If the invited player is on the same server as the party client we can use the Bukkit method to resolve the name to a UUID.
-            // It returns null if the player is not on the server.
-            val invited = partyBungeeClient!!.proxy.getPlayer(pId)
-            if (invited == null) {
-                PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
-                    party.invite(id, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
-                })
+        if (!pId.equals(inviter.name, true)) {
+            if (isOnline(pId)) {
+                // If the invited player is on the same server as the party client we can use the Bukkit method to resolve the name to a UUID.
+                // It returns null if the player is not on the server.
+                val invited = partyBungeeClient!!.proxy.getPlayer(pId)
+                partyBungeeClient!!.messenger.message("§7Die Einladung wurde verschickt.", inviter)
+                if (invited == null) {
+                    PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
+                        party.invite(id, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
+                    })
+                }
+                else party.invite(invited.uniqueId, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
             }
-            else party.invite(invited.uniqueId, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
+            else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
         }
-        else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
     }
 }
 
 internal fun handlePartyUpdate(party: Party, affected: UUID, memberMessage: String, affectedMessage: String) {
-    
     val color = partyBungeeClient!!.zBridge.getRankColor(affected).toString()
     val name = PlayerResolver.resolveUuidToName(affected)
     
     
-    partyBungeeClient!!.proxy.getPlayer(affected).let {
+    partyBungeeClient!!.proxy.getPlayer(affected)?.let {
         partyBungeeClient!!.messenger.message(affectedMessage, it)
     }
     
@@ -74,8 +73,6 @@ internal fun handlePartyUpdate(party: Party, affected: UUID, memberMessage: Stri
             .forEach { member ->  partyBungeeClient!!.messenger.message(memberMessage.replace("{c}", color).replace("{p}", name.orElse(":(")), member) }
     
 }
-
-
 
 internal fun isOnline(nameOrId: String): Boolean {
     return PlayerResolver.getOnlinePlayerCacheEntry(nameOrId).isPresent

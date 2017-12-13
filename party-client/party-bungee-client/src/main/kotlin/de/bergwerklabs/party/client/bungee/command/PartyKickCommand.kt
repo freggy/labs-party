@@ -46,8 +46,6 @@ class PartyKickCommand : BungeeCommand {
                             partyBungeeClient!!.messenger.message("§cDu kannst dich nicht selbst entfernen.", sender)
                             return@runAsync
                         }
-            
-                        // TODO: display message to all memebers
                         party.removeMember(toKick, PartyUpdateAction.PLAYER_KICK)
                     }
                     else partyBungeeClient!!.messenger.message("§cNur Party-Owner können Mitglieder entfernen.", sender)

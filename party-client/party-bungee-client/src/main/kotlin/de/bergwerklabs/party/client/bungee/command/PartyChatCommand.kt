@@ -2,12 +2,12 @@ package de.bergwerklabs.party.client.bungee.command
 
 import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.atlantis.api.party.packages.PartyChatPacket
-import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import kotlin.collections.HashSet
 
 /**
  * Created by Yannic Rieger on 08.10.2017.
@@ -26,13 +26,16 @@ class PartyChatCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            
             val optional = PartyApi.getParty(sender.uniqueId)
             if (optional.isPresent) {
                 val party = optional.get()
+                
+                val toSend = HashSet(party.getMembers().toHashSet())
+                toSend.add(party.getPartyOwner())
+                
                 partyBungeeClient!!.packageService.sendPackage(PartyChatPacket(
                         party.toAtlantisParty(),
-                        party.getMembers().toHashSet(),
+                        toSend,
                         PlayerNameToUuidMapping(sender.name, sender.uniqueId),
                         args!!.copyOfRange(0, args.size).joinToString(" ")
                 ))

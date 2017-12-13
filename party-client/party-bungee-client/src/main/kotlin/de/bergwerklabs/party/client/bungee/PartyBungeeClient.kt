@@ -46,7 +46,7 @@ class PartyBungeeClient : Plugin(), Listener {
     
     val messenger = PluginMessenger("Party")
     
-    val zBridge = ZBridge("admin", "LphX3VULzQVgp2ry3f2ypkZKE5YeufMtaamfeNNNwZbLWyqm")
+    val zBridge = ZBridge()
     
     val packageService = AtlantisPackageService(
             PartyServerInviteRequestPacket::class.java,
@@ -97,12 +97,12 @@ class PartyBungeeClient : Plugin(), Listener {
     
         this.packageService.addListener(PartyUpdatePacket::class.java, { pkg ->
             when (pkg.update) {
-                PartyUpdate.PLAYER_JOIN  -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§a✚ {c}{p} §bist der Party beigetreten.", "§aDu bist der Party beigetreten.")
-                PartyUpdate.PLAYER_LEAVE -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§c✖ {c}{p} §bhat die Party verlassen.", "§cDu hast die Party verlassen.")
+                PartyUpdate.PLAYER_JOIN  -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§a✚ {c}{p} §7ist der Party §abeigetreten.", "§aDu bist der Party beigetreten.")
+                PartyUpdate.PLAYER_LEAVE -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§c✖ {c}{p} §7hat die Party §cverlassen.", "§cDu hast die Party verlassen.")
                 PartyUpdate.PLAYER_KICK  -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§c✖ {c}{p} §4wurde aus der Party entfernt", "§4Du wurdest aus der Party entfernt.")
                 PartyUpdate.DISBAND      -> {
                     pkg.party.members.forEach { member ->
-                        this.proxy.getPlayer(member).let {
+                        this.proxy.getPlayer(member)?.let {
                             this.messenger.message("§cDie Party wurde aufgelöst.", it)
                         }
                     }
@@ -111,18 +111,19 @@ class PartyBungeeClient : Plugin(), Listener {
         })
     
         this.packageService.addListener(PartyServerInviteResponsePacket::class.java, { pkg ->
-            this.proxy.getPlayer(pkg.responder).let {
+            this.proxy.getPlayer(pkg.responder)?.let {
                 when (pkg.status) {
                     InviteStatus.PARTY_NOT_PRESENT -> this.messenger.message("§cDie Party is nicht mehr verfügbar", it)
                     InviteStatus.PARTY_FULL        -> this.messenger.message("§cDie Party is voll.", it)
                     InviteStatus.EXPIRED           -> this.messenger.message("§cDeine Einladung ist abgelaufen.", it)
+                    InviteStatus.ACCEPTED          -> this.messenger.message("§aDu hast die Einladung angenommen.", it)
                 }
             }
         })
         
         this.packageService.addListener(PartyChatPacket::class.java, { pkg ->
             pkg.recipients.forEach { recp ->
-                this.proxy.getPlayer(recp).let {
+                this.proxy.getPlayer(recp)?.let {
                     val color = zBridge.getRankColor(pkg.sender.uuid).toString()
                     this.messenger.message("$color${pkg.sender.name} §8»§r ${pkg.message}", it)
                 }
@@ -130,13 +131,13 @@ class PartyBungeeClient : Plugin(), Listener {
         })
         
         this.packageService.addListener(PartyChangeOwnerPacket::class.java, { pkg ->
-            this.proxy.getPlayer(pkg.newOwner).let {
+            this.proxy.getPlayer(pkg.newOwner)?.let {
                 this.messenger.message("§bDu bist nun Party-Owner", it)
             }
         })
     
         this.packageService.addListener(PartyServerInviteRequestPacket::class.java, { pkg ->
-            this.proxy.getPlayer(pkg.responder).let {
+            this.proxy.getPlayer(pkg.responder)?.let {
                 val initialSenderName = PlayerResolver.resolveUuidToName(pkg.initalSender).get()
             
                 // nasty little workaround to get the fancy message centered as well.
@@ -191,22 +192,21 @@ class PartyBungeeClient : Plugin(), Listener {
         val player = event.player
         
         this.runAsync {
-            PlayerResolver.resolveNameToUuid(player.name).ifPresent { uuid ->
-                PartyApi.getParty(uuid).ifPresent {
-                    if (it.isOwner(uuid)) {
+                PartyApi.getParty(player.uniqueId).ifPresent {
+                    if (it.isOwner(player.uniqueId)) {
                         val from = player.server.info.name
                         val to = event.target.name
-                
+                        
+                        if (to == null || from == null) return@ifPresent
+                        
                         val lobbyToGameserver = from.contains("lobby") && !to.contains("lobby")
-                        val gameserverToLobby = !from.contains("lobby") && to.contains("lobby")
                 
-                        if (lobbyToGameserver || gameserverToLobby) {
+                        if (lobbyToGameserver) {
                             this.logger.info("Party owner switched the server, party members will be moved as well.")
                             this.packageService.sendPackage(PartySwitchServerPacket(it.toAtlantisParty(), event.target.name))
                         }
                     }
                 }
-            }
         }
     }
 }

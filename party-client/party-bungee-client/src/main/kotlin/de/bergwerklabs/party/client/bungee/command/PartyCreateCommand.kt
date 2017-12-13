@@ -51,7 +51,7 @@ class PartyCreateCommand : BungeeCommand {
                         partyBungeeClient!!.messenger.message("§4FEHLER", sender)
                     }
                     result.status == PartyCreateStatus.ALREADY_PARTIED -> {
-                        partyBungeeClient!!.messenger.message("§4PartyCreateStatus.ALREADY_PARTIED", sender)
+                        partyBungeeClient!!.messenger.message("§cDu bist bereits in einer Party", sender)
                     }
                 }
             }
@@ -68,13 +68,15 @@ class PartyCreateCommand : BungeeCommand {
         potentialIds?.forEach { pId ->
             // If the invited player is on the same server as the party client we can use the Bukkit method to resolve the name to a UUID.
             // It returns null if the player is not on the server.
-            val invited = partyBungeeClient!!.proxy.getPlayer(pId)
-            if (invited == null) {
-                PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
-                    party.invite(id, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
-                })
+            if (!pId.equals(player.name, true)) {
+                val invited = partyBungeeClient!!.proxy.getPlayer(pId)
+                if (invited == null) {
+                    PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
+                        party.invite(id, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
+                    })
+                }
+                else party.invite(invited.uniqueId, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
             }
-            else party.invite(invited.uniqueId, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
         }
     }
     

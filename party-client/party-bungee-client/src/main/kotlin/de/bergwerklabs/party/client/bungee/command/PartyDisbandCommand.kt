@@ -31,6 +31,7 @@ class PartyDisbandCommand : BungeeCommand {
                     val party = optional.get()
                     if (party.isOwner(uuid)) {
                         party.disband()
+                        partyBungeeClient!!.messenger.message("§cDu hast die Party aufgelöst.", sender)
                     }
                     else partyBungeeClient!!.messenger.message("§cUm eine Party aufzulösen, musst du Party-Leader sein.", sender)
                 }
