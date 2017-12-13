@@ -14,6 +14,7 @@ import de.bergwerklabs.atlantis.client.base.PlayerResolver
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.framework.commons.bungee.chat.PluginMessenger
 import de.bergwerklabs.framework.commons.bungee.chat.text.MessageUtil
+import de.bergwerklabs.framework.commons.bungee.command.help.CommandHelpDisplay
 import de.bergwerklabs.framework.commons.bungee.permissions.ZBridge
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
@@ -25,7 +26,6 @@ import net.md_5.bungee.api.chat.ComponentBuilder
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PlayerDisconnectEvent
 import net.md_5.bungee.api.event.ServerConnectEvent
-import net.md_5.bungee.api.event.ServerDisconnectEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.api.plugin.Plugin
 import net.md_5.bungee.event.EventHandler
@@ -48,6 +48,8 @@ class PartyBungeeClient : Plugin(), Listener {
     
     internal val zBridge = ZBridge()
     
+    lateinit var  helpDisplay: CommandHelpDisplay
+    
     internal val packageService = AtlantisPackageService(
             PartyServerInviteRequestPacket::class.java,
             PartySwitchServerPacket::class.java,
@@ -64,22 +66,31 @@ class PartyBungeeClient : Plugin(), Listener {
         partyBungeeClient = this
         
         this.proxy.pluginManager.registerListener(this, this)
-        this.proxy.pluginManager.registerCommand(this, PartyParentCommand(
+        
+        
+        val partyChatCommand = PartyChatCommand()
+        val partyHelpCommand = PartyHelpCommand()
+        val parentCommand = PartyParentCommand(
                 "party",
                 "",
                 "",
-                null,
+                partyHelpCommand,
                 PartyKickCommand(),
                 PartyDisbandCommand(),
                 PartyInviteCommand(),
                 PartyInviteAcceptCommand(),
                 PartyInviteDenyCommand(),
+                partyChatCommand,
                 PartyCreateCommand(),
                 PartyLeaveCommand(),
-                PartyChatCommand(),
                 PartyPromoteCommand(),
+                partyHelpCommand,
                 PartyListCommand()
-        ))
+        )
+        
+        this.helpDisplay = CommandHelpDisplay(parentCommand.subCommands.toSet())
+        this.proxy.pluginManager.registerCommand(this, partyChatCommand)
+        this.proxy.pluginManager.registerCommand(this, parentCommand)
     
         this.packageService.addListener(PartySwitchServerPacket::class.java, { pkg ->
             pkg.party.members.forEach { member ->

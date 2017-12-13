@@ -7,6 +7,7 @@ import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import net.md_5.bungee.api.plugin.Command
 import kotlin.collections.HashSet
 
 /**
@@ -16,7 +17,7 @@ import kotlin.collections.HashSet
  *
  * @author Yannic Rieger
  */
-class PartyChatCommand : BungeeCommand {
+class PartyChatCommand : Command("p"), BungeeCommand {
     
     override fun getUsage() = "/party chat <message>"
     
