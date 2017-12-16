@@ -6,6 +6,7 @@ import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
+
 /**
  * Created by Yannic Rieger on 30.09.2017.
  *

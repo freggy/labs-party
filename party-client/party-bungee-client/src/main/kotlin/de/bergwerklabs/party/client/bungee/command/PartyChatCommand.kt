@@ -23,7 +23,7 @@ class PartyChatCommand : Command("p"), BungeeCommand {
     
     override fun getName() = "chat"
     
-    override fun getDescription() = "Message to party memebers"
+    override fun getDescription() = "Sendet eine Nachricht an alle Mitglieder"
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {

@@ -1,13 +1,11 @@
 package de.bergwerklabs.party.client.bungee.command
 
-import de.bergwerklabs.atlantis.api.party.packages.invite.PartyClientInviteResponsePacket
-import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyCreateStatus
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
-import de.bergwerklabs.party.client.bungee.PartyBungeeClient
 import de.bergwerklabs.party.client.bungee.handlePartyInviteResponse
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender

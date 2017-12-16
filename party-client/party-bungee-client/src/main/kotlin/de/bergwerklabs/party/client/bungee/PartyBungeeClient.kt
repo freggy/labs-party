@@ -10,7 +10,7 @@ import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteReque
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePacket
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePacket
-import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.framework.commons.bungee.chat.PluginMessenger
 import de.bergwerklabs.framework.commons.bungee.chat.text.MessageUtil
@@ -107,14 +107,16 @@ class PartyBungeeClient : Plugin(), Listener {
         })
     
         this.packageService.addListener(PartyUpdatePacket::class.java, { pkg ->
-            when (pkg.update) {
-                PartyUpdate.PLAYER_JOIN  -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§a✚ {c}{p} §7ist der Party §abeigetreten.", "§aDu bist der Party beigetreten.")
-                PartyUpdate.PLAYER_LEAVE -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§c✖ {c}{p} §7hat die Party §cverlassen.", "§cDu hast die Party verlassen.")
-                PartyUpdate.PLAYER_KICK  -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§c✖ {c}{p} §4wurde aus der Party entfernt", "§4Du wurdest aus der Party entfernt.")
-                PartyUpdate.DISBAND      -> {
-                    pkg.party.members.forEach { member ->
-                        this.proxy.getPlayer(member)?.let {
-                            this.messenger.message("§cDie Party wurde aufgelöst.", it)
+            this.runAsync {
+                when (pkg.update) {
+                    PartyUpdate.PLAYER_JOIN  -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§a✚ {c}{p} §7ist der Party §abeigetreten.", "§aDu bist der Party beigetreten.")
+                    PartyUpdate.PLAYER_LEAVE -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§c✖ {c}{p} §7hat die Party §cverlassen.", "§cDu hast die Party verlassen.")
+                    PartyUpdate.PLAYER_KICK  -> handlePartyUpdate(PartyApi.toParty(pkg.party), pkg.player, "§c✖ {c}{p} §4wurde aus der Party entfernt", "§4Du wurdest aus der Party entfernt.")
+                    PartyUpdate.DISBAND      -> {
+                        pkg.party.members.forEach { member ->
+                            this.proxy.getPlayer(member)?.let {
+                                this.messenger.message("§cDie Party wurde aufgelöst.", it)
+                            }
                         }
                     }
                 }
@@ -132,10 +134,12 @@ class PartyBungeeClient : Plugin(), Listener {
         })
         
         this.packageService.addListener(PartyChatPacket::class.java, { pkg ->
-            pkg.recipients.forEach { recp ->
-                this.proxy.getPlayer(recp)?.let {
-                    val color = zBridge.getRankColor(pkg.sender.uuid).toString()
-                    this.messenger.message("$color${pkg.sender.name} §8»§r ${pkg.message}", it)
+            this.runAsync {
+                pkg.recipients.forEach { recp ->
+                    this.proxy.getPlayer(recp)?.let {
+                        val color = zBridge.getRankColor(pkg.sender.uuid).toString()
+                        this.messenger.message("$color${pkg.sender.name} §8»§r ${pkg.message}", it)
+                    }
                 }
             }
         })
@@ -147,30 +151,32 @@ class PartyBungeeClient : Plugin(), Listener {
         })
     
         this.packageService.addListener(PartyServerInviteRequestPacket::class.java, { pkg ->
-            this.proxy.getPlayer(pkg.responder)?.let {
-                val initialSenderName = PlayerResolver.resolveUuidToName(pkg.initalSender).get()
-                val initalSenderColor = zBridge.getRankColor(pkg.initalSender).toString()
-    
-                // nasty little workaround to get the fancy message centered as well.
-                val spaces = MessageUtil.getSpacesToCenter("§a[ANNEHMEN]§6 | §c[ABLEHNEN]")
-                val builder = StringBuilder()
-                for (i in 0..spaces) builder.append(" ")
-    
-                val message = ComponentBuilder("$builder§a[ANNEHMEN]").color(ChatColor.GREEN)
+            this.runAsync {
+                this.proxy.getPlayer(pkg.responder)?.let {
+                    val initialSenderName = PlayerResolver.resolveUuidToName(pkg.initalSender).get()
+                    val initalSenderColor = zBridge.getRankColor(pkg.initalSender).toString()
+        
+                    // nasty little workaround to get the fancy message centered as well.
+                    val spaces = MessageUtil.getSpacesToCenter("§a[ANNEHMEN]§6 | §c[ABLEHNEN]")
+                    val builder = StringBuilder()
+                    for (i in 0..spaces) builder.append(" ")
+        
+                    val message = ComponentBuilder("$builder§a[ANNEHMEN]").color(ChatColor.GREEN)
                             .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party accept"))
-                        .append(" ❘ ").color(ChatColor.GOLD)
-                        .append("[ABLEHNEN]").color(ChatColor.RED)
+                            .append(" ❘ ").color(ChatColor.GOLD)
+                            .append("[ABLEHNEN]").color(ChatColor.RED)
                             .event(ClickEvent(ClickEvent.Action.RUN_COMMAND,"/party deny"))
-                        .create()
-                
-                MessageUtil.sendCenteredMessage(it, "§6§m-------§b Party-Einladung §6§m-------")
-                MessageUtil.sendCenteredMessage(it, " ")
-                MessageUtil.sendCenteredMessage(it, "§7Du hast eine Einladung von $initalSenderColor$initialSenderName §7erhalten.")
-                MessageUtil.sendCenteredMessage(it," ")
-                it.sendMessage(ChatMessageType.CHAT, *message)
-                MessageUtil.sendCenteredMessage(it," ")
-                MessageUtil.sendCenteredMessage(it, "§6§m--------------")
-                invitedFor[it.uniqueId] = pkg
+                            .create()
+        
+                    MessageUtil.sendCenteredMessage(it, "§6§m-------§b Party-Einladung §6§m-------")
+                    MessageUtil.sendCenteredMessage(it, " ")
+                    MessageUtil.sendCenteredMessage(it, "§7Du hast eine Einladung von $initalSenderColor$initialSenderName §7erhalten.")
+                    MessageUtil.sendCenteredMessage(it," ")
+                    it.sendMessage(ChatMessageType.CHAT, *message)
+                    MessageUtil.sendCenteredMessage(it," ")
+                    MessageUtil.sendCenteredMessage(it, "§6§m--------------")
+                    invitedFor[it.uniqueId] = pkg
+                }
             }
         })
     }
@@ -201,11 +207,11 @@ class PartyBungeeClient : Plugin(), Listener {
     @EventHandler
     fun onPlayerConnectServer(event: ServerConnectEvent) {
         val player = event.player
-        
         this.runAsync {
             PartyApi.getParty(player.uniqueId).ifPresent {
                 if (it.isOwner(player.uniqueId)) {
-                    val from = player.server.info.name
+                    val server = player.server ?: return@ifPresent
+                    val from = server.info.name
                     val to = event.target.name
                         
                     if (to == null || from == null) return@ifPresent

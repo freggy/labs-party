@@ -1,6 +1,6 @@
 package de.bergwerklabs.party.client.bungee.command
 
-import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction

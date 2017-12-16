@@ -1,6 +1,6 @@
 package de.bergwerklabs.party.client.bungee
 
-import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus

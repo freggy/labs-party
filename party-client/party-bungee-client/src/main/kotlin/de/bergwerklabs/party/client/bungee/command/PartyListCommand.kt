@@ -1,6 +1,6 @@
 package de.bergwerklabs.party.client.bungee.command
 
-import de.bergwerklabs.atlantis.client.base.PlayerResolver
+import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
@@ -27,7 +27,7 @@ class PartyListCommand : BungeeCommand {
     
     override fun getName() = "list"
     
-    override fun getDescription() = "Listet alle Mitglierder der Party auf."
+    override fun getDescription() = "Listet alle Mitglieder der Party auf."
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
