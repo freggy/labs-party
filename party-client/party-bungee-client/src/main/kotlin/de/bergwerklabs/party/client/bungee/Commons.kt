@@ -1,5 +1,7 @@
 package de.bergwerklabs.party.client.bungee
 
+import de.bergwerklabs.atlantis.client.base.playerdata.PlayerdataSet
+import de.bergwerklabs.atlantis.client.base.playerdata.SettingsFlag
 import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
@@ -8,6 +10,14 @@ import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.*
 import java.util.function.Consumer
 import kotlin.collections.HashSet
+
+
+internal fun canSendInvite(toInvite: UUID): Boolean {
+    val set = PlayerdataSet(toInvite)
+    set.loadAndWait()
+    return set.playerSettings.isSet(SettingsFlag.GLOBAL_PARTY_REQUESTS_ENABLED)
+}
+
 
 /**
  * Handles the response of a party invitation.
@@ -42,19 +52,19 @@ internal fun sendPartyInvites(inviter: ProxiedPlayer, potentialIds: Array<out St
     potentialIds?.forEach { pId ->
         if (!pId.equals(inviter.name, true)) {
             if (isOnline(pId)) {
-                // If the invited player is on the same server as the party client we can use the Bukkit method to resolve the name to a UUID.
-                // It returns null if the player is not on the server.
-                val invited = partyBungeeClient!!.proxy.getPlayer(pId)
-                partyBungeeClient!!.messenger.message("§7Die Einladung wurde verschickt.", inviter)
-                if (invited == null) {
-                    PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
+                PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
+                    if (canSendInvite(id)) {
+                        partyBungeeClient!!.messenger.message("§7Die Einladung wurde verschickt.", inviter)
                         party.invite(id, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
-                    })
-                }
-                else party.invite(invited.uniqueId, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
+                    }
+                    else {
+                        val color = partyBungeeClient!!.zBridge.getRankColor(id)
+                        partyBungeeClient!!.messenger.message("$color$pId §cmöchte nicht eingeladen werden.", inviter)
+                    }
+                })
             }
-            else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
         }
+        else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
     }
 }
 

@@ -6,8 +6,10 @@ import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyCreateStatus
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
+import de.bergwerklabs.party.client.bungee.canSendInvite
 import de.bergwerklabs.party.client.bungee.handlePartyInviteResponse
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
+import de.bergwerklabs.party.client.bungee.sendPartyInvites
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.function.Consumer
@@ -37,7 +39,7 @@ class PartyCreateCommand : BungeeCommand {
                 when {
                     result.status == PartyCreateStatus.SUCCESS -> {
                         partyBungeeClient!!.messenger.message("§aParty wurde erfolgreich erstellt.", sender)
-                        this.sendPartyInvites(args, result.party.get(), sender)
+                        sendPartyInvites(sender, args, result.party.get())
                     }
                     result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT -> {
                         errorMessage(sender, 4) // TODO: insert fitting value
@@ -52,28 +54,6 @@ class PartyCreateCommand : BungeeCommand {
                         partyBungeeClient!!.messenger.message("§cDu bist bereits in einer Party", sender)
                     }
                 }
-            }
-        }
-    }
-    
-    /**
-     * Sends party invites to players.
-     *
-     * @param potentialIds array containing potential player names.
-     * @param party        party to invite them to.
-     */
-    private fun sendPartyInvites(potentialIds: Array<out String>?, party: Party, player: ProxiedPlayer) {
-        potentialIds?.forEach { pId ->
-            // If the invited player is on the same server as the party client we can use the Bukkit method to resolve the name to a UUID.
-            // It returns null if the player is not on the server.
-            if (!pId.equals(player.name, true)) {
-                val invited = partyBungeeClient!!.proxy.getPlayer(pId)
-                if (invited == null) {
-                    PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
-                        party.invite(id, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
-                    })
-                }
-                else party.invite(invited.uniqueId, player.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, player) })
             }
         }
     }
