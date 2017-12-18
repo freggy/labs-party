@@ -29,7 +29,10 @@ class PartyPromoteCommand : BungeeCommand {
                 if (optional.isPresent) {
                     val party = optional.get()
                     if (party.isOwner(sender.uniqueId)) {
-                        PlayerResolver.resolveNameToUuid(args!![0]).ifPresent {
+                        val name = args!![0]
+                        PlayerResolver.resolveNameToUuid(name).ifPresent {
+                            val color = partyBungeeClient!!.zBridge.getRankColor(it)
+                            partyBungeeClient!!.messenger.message("§7Du hast $color$name §7zum Party-Owner promoted.", sender)
                             party.changeOwner(it)
                         }
                     }

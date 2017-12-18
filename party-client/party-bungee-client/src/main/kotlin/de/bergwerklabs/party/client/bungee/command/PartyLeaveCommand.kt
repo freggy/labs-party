@@ -28,6 +28,7 @@ class PartyLeaveCommand : BungeeCommand {
             partyBungeeClient!!.runAsync {
                 val optional = PartyApi.getParty(sender.uniqueId)
                 if (optional.isPresent) {
+                    partyBungeeClient!!.messenger.message("§7Du hast die Party §cverlassen§7.", sender)
                     val party = optional.get()
                     if (party.isOwner(sender.uniqueId)) {
                         party.disband()

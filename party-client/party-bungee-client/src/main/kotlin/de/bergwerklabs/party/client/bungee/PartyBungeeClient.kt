@@ -67,7 +67,6 @@ class PartyBungeeClient : Plugin(), Listener {
         
         this.proxy.pluginManager.registerListener(this, this)
         
-        
         val partyChatCommand = PartyChatCommand()
         val partyHelpCommand = PartyHelpCommand()
         val parentCommand = PartyParentCommand(
@@ -80,7 +79,6 @@ class PartyBungeeClient : Plugin(), Listener {
                 PartyInviteCommand(),
                 PartyInviteAcceptCommand(),
                 PartyInviteDenyCommand(),
-                partyChatCommand,
                 PartyCreateCommand(),
                 PartyLeaveCommand(),
                 PartyPromoteCommand(),

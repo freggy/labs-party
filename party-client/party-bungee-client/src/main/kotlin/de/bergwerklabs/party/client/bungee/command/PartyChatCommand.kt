@@ -17,7 +17,7 @@ import kotlin.collections.HashSet
  *
  * @author Yannic Rieger
  */
-class PartyChatCommand : Command("p"), BungeeCommand {
+class PartyChatCommand : Command("p", "", "p"), BungeeCommand {
     
     override fun getUsage() = "/party chat <message>"
     
