@@ -2,6 +2,8 @@ package de.bergwerklabs.party.server.listener
 
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.api.party.packages.invite.*
+import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
+import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePacket
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.server.*
 import java.util.*
@@ -48,19 +50,17 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
             
             if (responseParty != null) { // check if party is present
                 if (pendingInvites.containsKey(clientResponse.responder)) { // check if invite is not expired.
-                    
                     if (party.members.size >= 7) {
                         logger.info("Party is already full, sending error message back...")
                         packageService.sendPackage(PartyServerInviteResponsePacket(responseParty, clientResponse.responder, clientResponse.initalSender, InviteStatus.PARTY_FULL))
                     }
                     else {
                         logger.info("Sending response of invited player...")
-                        
                         if (clientResponse.status == InviteStatus.ACCEPTED) {
                             currentParties[clientResponse.party.id]?.members?.add(clientResponse.responder)
                             pendingInvites.remove(clientResponse.responder)
+                            packageService.sendPackage(PartyUpdatePacket(clientResponse.party, clientResponse.responder, PartyUpdate.PLAYER_JOIN))
                         }
-                        
                         packageService.sendPackage(PartyServerInviteResponsePacket(clientResponse.party, clientResponse.responder, clientResponse.initalSender, clientResponse.status))
                     }
                 }

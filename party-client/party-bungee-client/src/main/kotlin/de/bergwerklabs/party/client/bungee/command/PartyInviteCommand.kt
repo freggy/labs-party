@@ -6,6 +6,7 @@ import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import de.bergwerklabs.party.client.bungee.sendPartyInvites
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import java.util.function.Consumer
 
 /**
  * Created by Yannic Rieger on 17.10.2017.
@@ -24,14 +25,13 @@ class PartyInviteCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            partyBungeeClient!!.runAsync {
-                val optional = PartyApi.getParty(sender.uniqueId)
+            PartyApi.getParty(sender.uniqueId, Consumer { optional ->
                 if (optional.isPresent) {
                     val party = optional.get()
                     sendPartyInvites(sender, args, party)
                 }
                 else PartyCreateCommand().execute(sender, args)
-            }
+            })
         }
     }
 }

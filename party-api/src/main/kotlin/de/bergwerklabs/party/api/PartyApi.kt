@@ -7,13 +7,11 @@ import de.bergwerklabs.atlantis.api.party.packages.invite.*
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePacket
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
-import de.bergwerklabs.party.api.common.invites
-import de.bergwerklabs.party.api.common.sendInfoPacketAndGetResponse
-import de.bergwerklabs.party.api.common.tryPartyCreation
-import de.bergwerklabs.party.api.common.wrapPartyInviteResponse
+import de.bergwerklabs.party.api.common.*
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
+import java.util.function.Consumer
 
 
 internal val packageService = AtlantisPackageService(PartyInfoResponsePacket::class.java,
@@ -51,6 +49,13 @@ class PartyApi {
             return response.party != null
         }
     
+        @JvmStatic
+        fun isPartied(player: UUID, callback: Consumer<Boolean>) {
+            sendInfoPacketAndGetResponse(player, Consumer {
+                callback.accept(it.party != null)
+            })
+        }
+    
         /**
          * Determines whether or not the player is the owner of the [Party]
          *
@@ -61,6 +66,13 @@ class PartyApi {
         fun isPartyOwner(player: UUID): Boolean {
             val response = sendInfoPacketAndGetResponse(player)
             return response.party.owner == player
+        }
+        
+        @JvmStatic
+        fun isPartyOwner(player: UUID, callback: Consumer<Boolean>) {
+            sendInfoPacketAndGetResponse(player, Consumer {
+                callback.accept(it.party.owner == player)
+            })
         }
     
         /**
@@ -73,6 +85,13 @@ class PartyApi {
         fun isPartyMember(player: UUID): Boolean {
             val response = sendInfoPacketAndGetResponse(player)
             return response.party.members.contains(player)
+        }
+    
+        @JvmStatic
+        fun isPartyMember(player: UUID, callback: Consumer<Boolean>) {
+            sendInfoPacketAndGetResponse(player, Consumer {
+                callback.accept(it.party.members.contains(player))
+            })
         }
         
         /**
@@ -88,6 +107,17 @@ class PartyApi {
                 response.party == null -> Optional.empty()
                 else                   -> Optional.of(PartyWrapper(response.party))
             }
+        }
+    
+        @JvmStatic
+        fun getParty(player: UUID, callback: Consumer<Optional<Party>>) {
+            sendInfoPacketAndGetResponse(player, Consumer { pkg ->
+                val resp: Optional<Party> = when {
+                    pkg.party == null -> Optional.empty()
+                    else              -> Optional.of(PartyWrapper(pkg.party))
+                }
+                callback.accept(resp)
+            })
         }
         
         /**
@@ -112,6 +142,17 @@ class PartyApi {
     
     
         /**
+         * Creates a new [Party].
+         *
+         * @param owner   [UUID] of the owner of the party.
+         * @param callback gets invoked when the [PartyCreateResult] is received.
+         * @param members [UUID]s of members of the party.
+         */
+        fun createParty(owner: UUID, callback: Consumer<PartyCreateResult>, vararg members: UUID) {
+            return tryPartyCreationWithCallback(owner, members.toList(), callback)
+        }
+    
+        /**
          * Checks if a player is partied with another player.
          *
          * @param player1 partied player
@@ -119,30 +160,25 @@ class PartyApi {
          * @return        if a player is partied with another player.
          */
         @JvmStatic
-        fun isPartiedWith(player1: UUID, player2: UUID): Boolean {
-            val optional = getParty(player1)
-            if (optional.isPresent) {
-                val party = optional.get()
-                return party.isOwner(player2) || party.isMember(player2)
-            }
-            return false
+        fun isPartiedWith(player1: UUID, player2: UUID, callback: Consumer<Boolean>) {
+            getParty(player1, Consumer { optional ->
+                if (optional.isPresent) {
+                    val party = optional.get()
+                    callback.accept(party.isOwner(player2) || party.isMember(player2))
+                }
+                else callback.accept(false)
+            })
         }
         
         /**
          *
          */
         fun respondToInvite(status: PartyInviteStatus, respondingPlayer: UUID, request: PartyServerInviteRequestPacket) {
-            
             val resolution = when (status) {
                 PartyInviteStatus.ACCEPTED -> InviteStatus.ACCEPTED
                 PartyInviteStatus.DENIED   -> InviteStatus.DENIED
                 else                       -> InviteStatus.DENIED
             }
-            
-            if (resolution == InviteStatus.ACCEPTED) {
-                packageService.sendPackage(PartyUpdatePacket(request.party, respondingPlayer, PartyUpdate.PLAYER_JOIN))
-            }
-            
             packageService.sendResponse(PartyClientInviteResponsePacket(request.party, respondingPlayer, request.initalSender, resolution), request)
         }
         

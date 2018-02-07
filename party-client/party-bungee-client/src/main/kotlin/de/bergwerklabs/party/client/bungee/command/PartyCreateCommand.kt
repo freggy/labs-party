@@ -34,8 +34,7 @@ class PartyCreateCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            partyBungeeClient!!.runAsync {
-                val result = PartyApi.createParty(sender.uniqueId)
+            PartyApi.createParty(sender.uniqueId, Consumer { result ->
                 when {
                     result.status == PartyCreateStatus.SUCCESS -> {
                         partyBungeeClient!!.messenger.message("§aParty wurde erfolgreich erstellt.", sender)
@@ -54,7 +53,7 @@ class PartyCreateCommand : BungeeCommand {
                         partyBungeeClient!!.messenger.message("§cDu bist bereits in einer Party", sender)
                     }
                 }
-            }
+            })
         }
     }
     

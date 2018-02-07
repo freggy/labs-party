@@ -6,6 +6,7 @@ import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import java.util.function.Consumer
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
@@ -24,11 +25,8 @@ class PartyLeaveCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            
-            partyBungeeClient!!.runAsync {
-                val optional = PartyApi.getParty(sender.uniqueId)
+            PartyApi.getParty(sender.uniqueId, Consumer { optional ->
                 if (optional.isPresent) {
-                    partyBungeeClient!!.messenger.message("§7Du hast die Party §cverlassen§7.", sender)
                     val party = optional.get()
                     if (party.isOwner(sender.uniqueId)) {
                         party.disband()
@@ -36,7 +34,7 @@ class PartyLeaveCommand : BungeeCommand {
                     else party.removeMember(sender.uniqueId, PartyUpdateAction.PLAYER_LEAVE)
                 }
                 else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
-            }
+            })
         }
     }
 }

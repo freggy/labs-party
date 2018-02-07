@@ -6,6 +6,7 @@ import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import java.util.function.Consumer
 
 /**
  * Created by Yannic Rieger on 17.10.2017.
@@ -24,8 +25,7 @@ class PartyPromoteCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            partyBungeeClient!!.runAsync {
-                val optional = PartyApi.getParty(sender.uniqueId)
+            PartyApi.getParty(sender.uniqueId, Consumer { optional ->
                 if (optional.isPresent) {
                     val party = optional.get()
                     if (party.isOwner(sender.uniqueId)) {
@@ -39,7 +39,7 @@ class PartyPromoteCommand : BungeeCommand {
                     else partyBungeeClient!!.messenger.message("§cDu bist nicht der Party-Owner", sender)
                 }
                 else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
-            }
+            })
         }
     }
 }

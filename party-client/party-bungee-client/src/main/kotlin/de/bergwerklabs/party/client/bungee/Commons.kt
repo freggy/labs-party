@@ -1,7 +1,8 @@
 package de.bergwerklabs.party.client.bungee
 
-import de.bergwerklabs.atlantis.client.base.playerdata.PlayerdataSet
 import de.bergwerklabs.atlantis.client.base.playerdata.SettingsFlag
+import de.bergwerklabs.atlantis.client.base.playerdata.implementation.AtlantisPlayerdataFactory
+import de.bergwerklabs.atlantis.client.base.playerdata.implementation.AtlantisPlayerdataSet
 import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
@@ -11,11 +12,12 @@ import java.util.*
 import java.util.function.Consumer
 import kotlin.collections.HashSet
 
-
 internal fun canSendInvite(toInvite: UUID): Boolean {
-    val set = PlayerdataSet(toInvite)
+    val set = AtlantisPlayerdataFactory().createInstance(toInvite) as AtlantisPlayerdataSet
+    set.startUpdateLoop()
     set.loadAndWait()
-    return set.playerSettings.isSet(SettingsFlag.GLOBAL_PARTY_REQUESTS_ENABLED)
+    set.settings.update()
+    return set.settings.isSet(SettingsFlag.GLOBAL_PARTY_REQUESTS_ENABLED)
 }
 
 

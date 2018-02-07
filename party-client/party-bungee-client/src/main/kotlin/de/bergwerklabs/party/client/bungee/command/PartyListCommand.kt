@@ -13,6 +13,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder
 import net.md_5.bungee.api.chat.HoverEvent
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import java.util.function.Consumer
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
@@ -31,23 +32,22 @@ class PartyListCommand : BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            partyBungeeClient!!.runAsync {
-                val optional = PartyApi.getParty(sender.uniqueId)
+            PartyApi.getParty(sender.uniqueId, Consumer { optional ->
                 if (optional.isPresent) {
                     val party = optional.get()
-                    
+        
                     if (party.getMembers().isEmpty()) {
                         partyBungeeClient!!.messenger.message("§cEs sind keine Mitglieder in deiner Party.", sender)
-                        return@runAsync
+                        return@Consumer
                     }
-                    
+        
                     if (party.isOwner(sender.uniqueId)) {
                         this.displayOwnerView(sender, party)
                     }
                     else this.displayMemberView(sender, party)
                 }
                 else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
-            }
+            })
         }
     }
     

@@ -8,6 +8,7 @@ import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoRequestPacket
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePacket
 import de.bergwerklabs.atlantis.api.party.packages.invite.InviteStatus
 import de.bergwerklabs.atlantis.api.party.packages.invite.PartyServerInviteResponsePacket
+import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyCreateResult
 import de.bergwerklabs.party.api.packageService
@@ -32,7 +33,7 @@ internal fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePacket
     val future = packageService.sendRequestWithFuture(PartyInfoRequestPacket(player), PartyInfoResponsePacket::class.java)
     
     return try {
-        future.get(4, TimeUnit.SECONDS)
+        future.get(1, TimeUnit.SECONDS)
     }
     catch (ex: Exception) {
         ex.printStackTrace()
@@ -41,6 +42,14 @@ internal fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePacket
         return PartyInfoResponsePacket(UUID.randomUUID(), AtlantisParty(UUID.randomUUID(), arrayListOf(UUID.randomUUID()), UUID.randomUUID()))
     }
 }
+
+internal fun sendInfoPacketAndGetResponse(player: UUID, consumer: Consumer<PartyInfoResponsePacket>) {
+    packageService.sendPackage(PartyInfoRequestPacket(player), PartyInfoResponsePacket::class.java, AtlantisPackageService.Callback { pkg ->
+        consumer.accept(pkg)
+    })
+}
+
+
 
 /**
  * Creates a new [Party].
@@ -62,6 +71,16 @@ internal fun tryPartyCreation(owner: UUID, members: List<UUID>): PartyCreateResu
         return PartyCreateResult(Optional.empty(), PartyCreateStatus.UNKNOWN_ERROR)
     }
     
+    return createPartyResult(response, owner, members)
+}
+
+internal fun tryPartyCreationWithCallback(owner: UUID, members: List<UUID>, callback: Consumer<PartyCreateResult>) {
+    packageService.sendPackage(PartyCreateRequestPacket(owner, members.toHashSet()), PartyCreateResponsePacket::class.java, AtlantisPackageService.Callback {
+        callback.accept(createPartyResult(it, owner, members))
+    })
+}
+
+internal fun createPartyResult(response: PartyCreateResponsePacket, owner: UUID, members: List<UUID>): PartyCreateResult {
     return when {
         response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_DEFAULT -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT)
         response.type == PartyCreateResponseType.DENY_TOO_MANY_MEMBERS_PREMIUM -> PartyCreateResult(Optional.empty(), PartyCreateStatus.DENY_TOO_MANY_MEMBERS_PREMIUM)
@@ -70,6 +89,13 @@ internal fun tryPartyCreation(owner: UUID, members: List<UUID>): PartyCreateResu
         else                                                                   -> PartyCreateResult(Optional.empty(), PartyCreateStatus.UNKNOWN_ERROR)
     }
 }
+
+
+
+
+
+
+
 
 /**
  * Wraps a PartyServerInviteResponsePackage.

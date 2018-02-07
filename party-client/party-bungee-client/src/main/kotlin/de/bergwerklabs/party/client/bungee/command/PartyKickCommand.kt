@@ -7,6 +7,7 @@ import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import java.util.function.Consumer
 
 /**
  * Created by Yannic Rieger on 30.09.2017.
@@ -31,27 +32,27 @@ class PartyKickCommand : BungeeCommand {
                 return
             }
             
-            partyBungeeClient!!.runAsync {
-                val optional = PartyApi.getParty(sender.uniqueId)
-    
+            PartyApi.getParty(sender.uniqueId, Consumer { optional ->
                 if (optional.isPresent) {
-                    val party = optional.get()
-                    if (party.isOwner(sender.uniqueId)) {
-                        val toKick = PlayerResolver.resolveNameToUuid(args!![0]).get()
-                        if (!party.isMember(toKick)) {
-                            partyBungeeClient!!.messenger.message("§cDieser Spieler ist nicht in deiner Party.", sender)
-                            return@runAsync
+                    if (optional.isPresent) {
+                        val party = optional.get()
+                        if (party.isOwner(sender.uniqueId)) {
+                            val toKick = PlayerResolver.resolveNameToUuid(args!![0]).get()
+                            if (!party.isMember(toKick)) {
+                                partyBungeeClient!!.messenger.message("§cDieser Spieler ist nicht in deiner Party.", sender)
+                                return@Consumer
+                            }
+                            else if (party.isOwner(toKick)) {
+                                partyBungeeClient!!.messenger.message("§cDu kannst dich nicht selbst entfernen.", sender)
+                                return@Consumer
+                            }
+                            party.removeMember(toKick, PartyUpdateAction.PLAYER_KICK)
                         }
-                        else if (party.isOwner(toKick)) {
-                            partyBungeeClient!!.messenger.message("§cDu kannst dich nicht selbst entfernen.", sender)
-                            return@runAsync
-                        }
-                        party.removeMember(toKick, PartyUpdateAction.PLAYER_KICK)
+                        else partyBungeeClient!!.messenger.message("§cNur Party-Owner können Mitglieder entfernen.", sender)
                     }
-                    else partyBungeeClient!!.messenger.message("§cNur Party-Owner können Mitglieder entfernen.", sender)
+                    else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
                 }
-                else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
-            }
+            })
         }
     }
 }
