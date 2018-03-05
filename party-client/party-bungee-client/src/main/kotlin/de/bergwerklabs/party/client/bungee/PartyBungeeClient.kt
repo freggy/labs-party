@@ -15,24 +15,34 @@ import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.framework.commons.bungee.chat.PluginMessenger
 import de.bergwerklabs.framework.commons.bungee.chat.text.MessageUtil
 import de.bergwerklabs.framework.commons.bungee.command.help.CommandHelpDisplay
-import de.bergwerklabs.framework.commons.bungee.permissions.ZBridge
+import de.bergwerklabs.framework.permissionbridge.PermissionBridge
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
 import de.bergwerklabs.party.client.bungee.command.*
+import de.bergwerklabs.permissionbridge.luckperms.common.LuckPermsBridge
+import me.lucko.luckperms.LuckPerms
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatMessageType
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ComponentBuilder
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PlayerDisconnectEvent
+import net.md_5.bungee.api.event.PostLoginEvent
 import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.api.plugin.Plugin
 import net.md_5.bungee.event.EventHandler
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
+import kotlin.collections.HashMap
 
 var partyBungeeClient: PartyBungeeClient? = null
+
+
+data class CooldownInfo(val name: String, val expires: Long)
+
+val cooldown = ConcurrentHashMap<UUID, MutableSet<CooldownInfo>>()
 
 /**
  * Created by Yannic Rieger on 17.10.2017.
@@ -47,7 +57,7 @@ class PartyBungeeClient : Plugin(), Listener {
     
     internal val messenger = PluginMessenger("Party")
     
-    internal val zBridge = ZBridge("admin", "LphX3VULzQVgp2ry3f2ypkZKE5YeufMtaamfeNNNwZbLWyqm")
+    internal lateinit var bridge: PermissionBridge
     
     lateinit var  helpDisplay: CommandHelpDisplay
     
@@ -65,7 +75,7 @@ class PartyBungeeClient : Plugin(), Listener {
     
     override fun onEnable() {
         partyBungeeClient = this
-        this.zBridge.init()
+        this.bridge = LuckPermsBridge(LuckPerms.getApi())
         
         this.proxy.pluginManager.registerListener(this, this)
         
@@ -91,17 +101,34 @@ class PartyBungeeClient : Plugin(), Listener {
         this.helpDisplay = CommandHelpDisplay(parentCommand.subCommands.toSet())
         this.proxy.pluginManager.registerCommand(this, partyChatCommand)
         this.proxy.pluginManager.registerCommand(this, parentCommand)
+        
+        /*
+        this.proxy.scheduler.schedule(this, {
+            println("HELLO1")
+            cooldown.forEach { uuid, infos ->
+                println("HELLO")
+                println(uuid)
+                println(infos)
+                println(infos.removeAll(infos.filter { it.expires + 30_000 <= System.currentTimeMillis() }.toSet()))
+            }
+        }, 1, TimeUnit.SECONDS)*/
     
         this.packageService.addListener(PartySwitchServerPacket::class.java, { pkg ->
             pkg.party.members.forEach { member ->
-                val player = this.proxy.getPlayer(member)
-                // only move players registered to this client
-                if (player != null) {
-                    val server = this.proxy.servers[pkg.serverName]
-                    if (server != null) {
-                        player.connect(server)
+                if (pkg.party.owner != member) {
+                    val player = this.proxy.getPlayer(member)
+                    // only move players registered to this client
+                    if (player != null) {
+                        val server = this.proxy.servers[pkg.serverName]
+                        if (server != null) {
+                            player.connect(server)
+                        }
+                        else player.sendMessage(
+                            ChatMessageType.CHAT, *TextComponent.fromLegacyText(
+                                "§6>> §eColumbia §6❘ §cDieser Server ist nicht mehr online."
+                            )
+                        )
                     }
-                    else player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6>> §eColumbia §6❘ §cDieser Server ist nicht mehr online."))
                 }
             }
         })
@@ -134,7 +161,7 @@ class PartyBungeeClient : Plugin(), Listener {
         this.packageService.addListener(PartyChatPacket::class.java, { pkg ->
             pkg.recipients.forEach { recp ->
                 this.proxy.getPlayer(recp)?.let {
-                    val color = zBridge.getRankColor(pkg.sender.uuid).toString()
+                    val color = this.bridge.getGroupPrefix(pkg.sender.uuid) //zBridge.getRankColor(pkg.sender.uuid).toString()
                     this.messenger.message("$color${pkg.sender.name} §8»§r ${pkg.message}", it)
                 }
             }
@@ -149,7 +176,7 @@ class PartyBungeeClient : Plugin(), Listener {
         this.packageService.addListener(PartyServerInviteRequestPacket::class.java, { pkg ->
                 this.proxy.getPlayer(pkg.responder)?.let {
                     val initialSenderName = PlayerResolver.resolveUuidToName(pkg.initalSender).get()
-                    val initalSenderColor = zBridge.getRankColor(pkg.initalSender).toString()
+                    val initalSenderColor = this.bridge.getGroupPrefix(pkg.initalSender) //zBridge.getRankColor(pkg.initalSender).toString()
         
                     // nasty little workaround to get the fancy message centered as well.
                     val spaces = MessageUtil.getSpacesToCenter("§a[ANNEHMEN]§6 | §c[ABLEHNEN]")
@@ -179,9 +206,16 @@ class PartyBungeeClient : Plugin(), Listener {
         this.proxy.scheduler.runAsync(this, { method.invoke(Unit) })
     }
     
+    
+    @EventHandler
+    fun onPlayerJoin(event: PostLoginEvent) {
+        cooldown[event.player.uniqueId] = mutableSetOf<CooldownInfo>()
+    }
+    
     @EventHandler
     fun onPlayerDisconnectServer(event: PlayerDisconnectEvent) {
         val uuid = event.player.uniqueId
+        cooldown.remove(uuid)
         PartyApi.getParty(uuid, Consumer {
             it.ifPresent {
                 if (it.isOwner(uuid)) {

@@ -28,7 +28,7 @@ class PartyInviteCommand : BungeeCommand {
             PartyApi.getParty(sender.uniqueId, Consumer { optional ->
                 if (optional.isPresent) {
                     val party = optional.get()
-                    sendPartyInvites(sender, args, party)
+                    sendPartyInvites(sender, args!!.toMutableList(), party)
                 }
                 else PartyCreateCommand().execute(sender, args)
             })

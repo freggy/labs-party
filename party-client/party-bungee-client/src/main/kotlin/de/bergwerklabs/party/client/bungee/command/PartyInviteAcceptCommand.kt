@@ -30,9 +30,12 @@ class PartyInviteAcceptCommand : BungeeCommand {
             
             PartyApi.isPartied(sender.uniqueId, Consumer {
                 if (!it) {
-                    PartyApi.respondToInvite(PartyInviteStatus.ACCEPTED, sender.uniqueId, partyBungeeClient!!.invitedFor[sender.uniqueId]!!)
-                    // remove all entries because player is partied and should no longer respond to those invites
-                    partyBungeeClient!!.invitedFor.remove(sender.uniqueId)
+                    val req = partyBungeeClient!!.invitedFor[sender.uniqueId]
+                    if (req != null) {
+                        PartyApi.respondToInvite(PartyInviteStatus.ACCEPTED, sender.uniqueId, req)
+                        // remove all entries because player is partied and should no longer respond to those invites
+                        partyBungeeClient!!.invitedFor.remove(sender.uniqueId)
+                    }
                 }
                 else partyBungeeClient!!.messenger.message("§cDu bist bereits in einer Party.", sender)
             })

@@ -4,6 +4,7 @@ import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.client.bungee.partyBungeeClient
+import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.function.Consumer
@@ -30,8 +31,10 @@ class PartyPromoteCommand : BungeeCommand {
                     val party = optional.get()
                     if (party.isOwner(sender.uniqueId)) {
                         val name = args!![0]
+                        println("FRIEND REQ 1")
                         PlayerResolver.resolveNameToUuid(name).ifPresent {
-                            val color = partyBungeeClient!!.zBridge.getRankColor(it)
+                            println("FRIEND REQ 2")
+                            val color = ChatColor.translateAlternateColorCodes('&', partyBungeeClient!!.bridge.getGroupPrefix(it))
                             partyBungeeClient!!.messenger.message("§7Du hast $color$name §7zum Party-Owner promoted.", sender)
                             party.changeOwner(it)
                         }

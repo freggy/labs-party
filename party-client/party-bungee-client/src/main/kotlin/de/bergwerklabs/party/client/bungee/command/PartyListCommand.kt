@@ -60,19 +60,20 @@ class PartyListCommand : BungeeCommand {
     private fun displayOwnerView(player: ProxiedPlayer, party: Party) {
         player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-----§b Party-Übersicht §6§m-----"))
         party.getMembers().forEach { member ->
-            val name = PlayerResolver.resolveUuidToName(member).get()
-            val message = ComponentBuilder("✖").color(ChatColor.RED)
-                        .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party kick $name"))
-                        .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Entfernt $name von der Party.")))
+            PlayerResolver.resolveUuidToName(member).ifPresent {
+                val message = ComponentBuilder("✖").color(ChatColor.RED)
+                    .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party kick $it"))
+                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Entfernt $it von der Party.")))
                     .append("☗").color(ChatColor.GREEN)
-                        .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party promote $name"))
-                        .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Befördert $name zun neuen Party-Owner.")))
+                    .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party promote $it"))
+                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Befördert $it zun neuen Party-Owner.")))
                     .append("➥").color(ChatColor.AQUA)
-                        .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $name"))
-                        .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $name teleportiert.")))
-                    .append(" $name")
+                    .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $it"))
+                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $it teleportiert.")))
+                    .append(" $it")
                     .create()
-            player.sendMessage(ChatMessageType.CHAT, *message)
+                player.sendMessage(ChatMessageType.CHAT, *message)
+            }
         }
         player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-------------------------"))
     }
@@ -91,7 +92,7 @@ class PartyListCommand : BungeeCommand {
                 .append("➥").color(ChatColor.AQUA)
                     .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $ownerName"))
                     .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $ownerName teleportiert.")))
-                .append(" $ownerName").color(partyBungeeClient!!.zBridge.getRankColor(party.getPartyOwner()))
+                .append(" $ownerName").color(ChatColor.getByChar(partyBungeeClient!!.bridge.getGroupPrefix(party.getPartyOwner())[1]))
                 .create()
         player.sendMessage(ChatMessageType.CHAT, *message)
         
@@ -102,7 +103,7 @@ class PartyListCommand : BungeeCommand {
                         .append("➥").color(ChatColor.AQUA)
                         .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $memberName"))
                         .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $memberName teleportiert.")))
-                        .append(" $memberName").color(partyBungeeClient!!.zBridge.getRankColor(member))
+                        .append(" $memberName").color(ChatColor.getByChar(partyBungeeClient!!.bridge.getGroupPrefix(member)[1]))
                         .create()
                 player.sendMessage(ChatMessageType.CHAT, *msg)
             }

@@ -32,6 +32,7 @@ class PartyWarpCommand : BungeeCommand {
             
             partyBungeeClient!!.runAsync {
                 PlayerResolver.getOnlinePlayerCacheEntry(to).ifPresent { entry ->
+                    println("WARP 1")
                     val nameOptional = PlayerResolver.resolveNameToUuid(to)
                     if (nameOptional.isPresent) {
                         PartyApi.getParty(sender.uniqueId, Consumer { partyOptional ->

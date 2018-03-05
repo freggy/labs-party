@@ -38,7 +38,7 @@ class PartyCreateCommand : BungeeCommand {
                 when {
                     result.status == PartyCreateStatus.SUCCESS -> {
                         partyBungeeClient!!.messenger.message("§aParty wurde erfolgreich erstellt.", sender)
-                        sendPartyInvites(sender, args, result.party.get())
+                        sendPartyInvites(sender, args!!.toMutableList(), result.party.get())
                     }
                     result.status == PartyCreateStatus.DENY_TOO_MANY_MEMBERS_DEFAULT -> {
                         errorMessage(sender, 4) // TODO: insert fitting value

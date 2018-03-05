@@ -1,23 +1,21 @@
 package de.bergwerklabs.party.client.bungee
 
+import de.bergwerklabs.atlantis.client.base.playerdata.PlayerdataSet
 import de.bergwerklabs.atlantis.client.base.playerdata.SettingsFlag
-import de.bergwerklabs.atlantis.client.base.playerdata.implementation.AtlantisPlayerdataFactory
-import de.bergwerklabs.atlantis.client.base.playerdata.implementation.AtlantisPlayerdataSet
 import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
+import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.*
 import java.util.function.Consumer
 import kotlin.collections.HashSet
 
 internal fun canSendInvite(toInvite: UUID): Boolean {
-    val set = AtlantisPlayerdataFactory().createInstance(toInvite) as AtlantisPlayerdataSet
-    set.startUpdateLoop()
+    val set = PlayerdataSet(toInvite) //AtlantisPlayerdataFactory().createInstance(toInvite) as AtlantisPlayerdataSet
     set.loadAndWait()
-    set.settings.update()
-    return set.settings.isSet(SettingsFlag.GLOBAL_PARTY_REQUESTS_ENABLED)
+    return set.playerSettings.isSet(SettingsFlag.GLOBAL_PARTY_REQUESTS_ENABLED)
 }
 
 
@@ -31,7 +29,7 @@ internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSend
     val messenger = partyBungeeClient!!.messenger
     
     PlayerResolver.resolveUuidToName(response.playerUuid).ifPresent({
-        val color = partyBungeeClient!!.zBridge.getRankColor(response.playerUuid).toString()
+        val color = partyBungeeClient!!.bridge.getGroupPrefix(response.playerUuid)
         
         when (response.status) {
             PartyInviteStatus.ACCEPTED          -> messenger.message("§a✚§r $color$it §bist der Party beigetreten.", inviteSender)
@@ -50,28 +48,40 @@ internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSend
  * @param potentialIds array containing potential player names.
  * @param party        party to invite them to.
  */
-internal fun sendPartyInvites(inviter: ProxiedPlayer, potentialIds: Array<out String>?, party: Party) {
-    potentialIds?.forEach { pId ->
-        if (!pId.equals(inviter.name, true)) {
-            if (isOnline(pId)) {
-                PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
-                    if (canSendInvite(id)) {
-                        partyBungeeClient!!.messenger.message("§7Die Einladung wurde verschickt.", inviter)
-                        party.invite(id, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
-                    }
-                    else {
-                        val color = partyBungeeClient!!.zBridge.getRankColor(id)
-                        partyBungeeClient!!.messenger.message("$color$pId §cmöchte nicht eingeladen werden.", inviter)
-                    }
-                })
+internal fun sendPartyInvites(inviter: ProxiedPlayer, potentialIds: MutableList<String>, party: Party) {
+    /*
+    val remove = potentialIds
+        .filter { cooldown[inviter.uniqueId]!!.any { info -> info.name.equals(it, true) } }
+        .toList()
+    
+    remove.forEach {
+        partyBungeeClient!!.messenger.message("Du musst 30 Sekunden warten, bevor du $it einladen kannst", inviter)
+    }*/
+    
+    //potentialIds.removeAll(remove)
+    
+    potentialIds.forEach { pId ->
+            if (!pId.equals(inviter.name, true)) {
+                //cooldown[inviter.uniqueId]!!.add(CooldownInfo(pId, System.currentTimeMillis()))
+                if (isOnline(pId)) {
+                    PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
+                        if (canSendInvite(id)) {
+                            partyBungeeClient!!.messenger.message("§7Die Einladung wurde verschickt.", inviter)
+                            party.invite(id, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
+                        }
+                        else {
+                            val color = ChatColor.translateAlternateColorCodes('&', partyBungeeClient!!.bridge.getGroupPrefix(id))
+                            partyBungeeClient!!.messenger.message("$color$pId §cmöchte nicht eingeladen werden.", inviter)
+                        }
+                    })
+                }
             }
-        }
-        else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
+            else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
     }
 }
 
 internal fun handlePartyUpdate(party: Party, affected: UUID, memberMessage: String, affectedMessage: String) {
-    val color = partyBungeeClient!!.zBridge.getRankColor(affected).toString()
+    val color = ChatColor.translateAlternateColorCodes('&', partyBungeeClient!!.bridge.getGroupPrefix(affected))
     val name = PlayerResolver.resolveUuidToName(affected)
     
     partyBungeeClient!!.proxy.getPlayer(affected)?.let {

@@ -37,6 +37,7 @@ class PartyKickCommand : BungeeCommand {
                     if (optional.isPresent) {
                         val party = optional.get()
                         if (party.isOwner(sender.uniqueId)) {
+                            println("party kick")
                             val toKick = PlayerResolver.resolveNameToUuid(args!![0]).get()
                             if (!party.isMember(toKick)) {
                                 partyBungeeClient!!.messenger.message("§cDieser Spieler ist nicht in deiner Party.", sender)
