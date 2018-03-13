@@ -24,7 +24,6 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
         val party = currentParties[pkg.party.id]
         val invited = PlayerResolver.resolveNameToUuid(pkg.invitedPlayer.name)
         
-        
         logger.info("Received invite request from ${pkg.sender} for ${pkg.invitedPlayer} to party ${pkg.party.id}")
         
         if (party != null) {
@@ -48,7 +47,7 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
         logger.info("Invite is now pending, after 30 seconds it will be removed.")
         pendingInvites[invited.uuid] = System.currentTimeMillis()
         
-        packageService.sendPackage(PartyServerInviteRequestPacket(party, pkg.invitedPlayer, pkg.sender, null), PartyClientInviteResponsePacket::class.java, AtlantisPackageService.Callback { response ->
+        packageService.sendPackage(PartyServerInviteRequestPacket(party, invited, pkg.sender, null), PartyClientInviteResponsePacket::class.java, AtlantisPackageService.Callback { response ->
             val responseParty = currentParties[pkg.party.id]
             val clientResponse = response as PartyClientInviteResponsePacket
             
