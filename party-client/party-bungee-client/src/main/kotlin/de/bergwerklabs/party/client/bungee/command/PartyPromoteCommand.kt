@@ -31,12 +31,10 @@ class PartyPromoteCommand : BungeeCommand {
                     val party = optional.get()
                     if (party.isOwner(sender.uniqueId)) {
                         val name = args!![0]
-                        println("FRIEND REQ 1")
-                        PlayerResolver.resolveNameToUuid(name).ifPresent {
-                            println("FRIEND REQ 2")
-                            val color = ChatColor.translateAlternateColorCodes('&', partyBungeeClient!!.bridge.getGroupPrefix(it))
+                        PlayerResolver.resolveNameToUuidAsync(name).thenAccept { mapping ->
+                            val color = ChatColor.translateAlternateColorCodes('&', partyBungeeClient!!.bridge.getGroupPrefix(mapping.uuid))
                             partyBungeeClient!!.messenger.message("§7Du hast $color$name §7zum Party-Owner promoted.", sender)
-                            party.changeOwner(it)
+                            party.changeOwner(mapping.uuid)
                         }
                     }
                     else partyBungeeClient!!.messenger.message("§cDu bist nicht der Party-Owner", sender)

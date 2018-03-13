@@ -30,29 +30,24 @@ class PartyWarpCommand : BungeeCommand {
                 return
             }
             
-            partyBungeeClient!!.runAsync {
-                PlayerResolver.getOnlinePlayerCacheEntry(to).ifPresent { entry ->
-                    println("WARP 1")
-                    val nameOptional = PlayerResolver.resolveNameToUuid(to)
-                    if (nameOptional.isPresent) {
-                        PartyApi.getParty(sender.uniqueId, Consumer { partyOptional ->
-                            if (partyOptional.isPresent) {
-                                val party = partyOptional.get()
-                                val uuid = nameOptional.get()
-                                if (party.isOwner(uuid) || party.isMember(uuid)) {
-                                    partyBungeeClient!!.messenger.message("§cDieser Spieler ist nicht in deiner Freundesliste.", sender)
-                                }
-                                else {
-                                    val info = entry.currentServer
-                                    if (entry != info) {
-                                        partyBungeeClient!!.proxy.getServerInfo("${info.containerId}_${info.service}")?.let {
-                                            sender.connect(it)
-                                        }
+            PlayerResolver.resolveNameToUuidAsync(to).thenApply { mapping ->
+                PlayerResolver.getOnlinePlayerCacheEntry(mapping.uuid).thenAccept { entry ->
+                    PartyApi.getParty(sender.uniqueId, Consumer { partyOptional ->
+                        if (partyOptional.isPresent) {
+                            val party = partyOptional.get()
+                            val uuid = mapping.uuid
+                            if (party.isOwner(uuid) || party.isMember(uuid)) {
+                                partyBungeeClient!!.messenger.message("§cDieser Spieler ist nicht in deiner Freundesliste.", sender)
+                            }
+                            else {
+                                if (entry != null) {
+                                    partyBungeeClient!!.proxy.getServerInfo("${entry.server.id}_${entry.server.service}")?.let {
+                                        sender.connect(it)
                                     }
                                 }
                             }
-                        })
-                    }
+                        }
+                    })
                 }
             }
         }

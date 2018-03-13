@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.client.bungee.command
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.PartyApi
@@ -29,7 +30,7 @@ class PartyInviteDenyCommand : BungeeCommand {
             if (partyBungeeClient!!.invitedFor[sender.uniqueId] == null) return
             PartyApi.isPartied(sender.uniqueId, Consumer {
                 if (!it) {
-                    PartyApi.respondToInvite(PartyInviteStatus.DENIED, sender.uniqueId, partyBungeeClient!!.invitedFor[sender.uniqueId]!!)
+                    PartyApi.respondToInvite(PartyInviteStatus.DENIED, PlayerNameToUuidMapping(sender.name, sender.uniqueId), partyBungeeClient!!.invitedFor[sender.uniqueId]!!)
                     partyBungeeClient!!.messenger.message("§cDu hast die Einladung abgelehnt.", sender)
                 }
                 else partyBungeeClient!!.messenger.message("§cDu bist bereits in einer Party.", sender)

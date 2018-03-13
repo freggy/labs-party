@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.api.wrapper
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import java.util.*
 
 /**
@@ -9,4 +10,4 @@ import java.util.*
  *
  * @author Yannic Rieger
  */
-data class PartyInviteResponse(val playerUuid: UUID, val status: PartyInviteStatus, val partyId: UUID)
+data class PartyInviteResponse(val playerUuid: PlayerNameToUuidMapping, val status: PartyInviteStatus, val partyId: UUID)

@@ -1,8 +1,8 @@
 package de.bergwerklabs.party.client.bungee
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.atlantis.client.base.playerdata.PlayerdataSet
 import de.bergwerklabs.atlantis.client.base.playerdata.SettingsFlag
-import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.party.api.Party
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
@@ -28,17 +28,24 @@ internal fun canSendInvite(toInvite: UUID): Boolean {
 internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSender: ProxiedPlayer) {
     val messenger = partyBungeeClient!!.messenger
     
-    PlayerResolver.resolveUuidToName(response.playerUuid).ifPresent({
-        val color = partyBungeeClient!!.bridge.getGroupPrefix(response.playerUuid)
-        
-        when (response.status) {
-            PartyInviteStatus.ACCEPTED          -> messenger.message("§a✚§r $color$it §bist der Party beigetreten.", inviteSender)
-            PartyInviteStatus.DENIED            -> messenger.message("§c✖§r $color$it §bhat die Einaldung abgelehnt.", inviteSender)
-            PartyInviteStatus.ALREADY_PARTIED   -> messenger.message("$color$it §cist bereits in einer Party", inviteSender)
-            PartyInviteStatus.PARTY_NOT_PRESENT -> messenger.message("§cDu musst erst eine Party erstellen", inviteSender)
-            PartyInviteStatus.PARTY_FULL        -> messenger.message("§cDie Party ist voll.", inviteSender)
-        }
-    })
+    val color = partyBungeeClient!!.bridge.getGroupPrefix(response.playerUuid.uuid)
+    val name = response.playerUuid.name
+    
+    when (response.status) {
+        PartyInviteStatus.ACCEPTED -> messenger.message(
+            "§a✚§r $color$name §bist der Party beigetreten.", inviteSender
+        )
+        PartyInviteStatus.DENIED -> messenger.message(
+            "§c✖§r $color$name §bhat die Einaldung abgelehnt.", inviteSender
+        )
+        PartyInviteStatus.ALREADY_PARTIED -> messenger.message(
+            "$color$name §cist bereits in einer Party", inviteSender
+        )
+        PartyInviteStatus.PARTY_NOT_PRESENT -> messenger.message(
+            "§cDu musst erst eine Party erstellen", inviteSender
+        )
+        PartyInviteStatus.PARTY_FULL -> messenger.message("§cDie Party ist voll.", inviteSender)
+    }
 }
 
 /**
@@ -49,42 +56,30 @@ internal fun handlePartyInviteResponse(response: PartyInviteResponse, inviteSend
  * @param party        party to invite them to.
  */
 internal fun sendPartyInvites(inviter: ProxiedPlayer, potentialIds: MutableList<String>, party: Party) {
-    /*
-    val remove = potentialIds
-        .filter { cooldown[inviter.uniqueId]!!.any { info -> info.name.equals(it, true) } }
-        .toList()
-    
-    remove.forEach {
-        partyBungeeClient!!.messenger.message("Du musst 30 Sekunden warten, bevor du $it einladen kannst", inviter)
-    }*/
-    
-    //potentialIds.removeAll(remove)
-    
     potentialIds.forEach { pId ->
-            if (!pId.equals(inviter.name, true)) {
-                //cooldown[inviter.uniqueId]!!.add(CooldownInfo(pId, System.currentTimeMillis()))
-                if (isOnline(pId)) {
-                    PlayerResolver.resolveNameToUuid(pId).ifPresent({ id ->
-                        if (canSendInvite(id)) {
-                            partyBungeeClient!!.messenger.message("§7Die Einladung wurde verschickt.", inviter)
-                            party.invite(id, inviter.uniqueId, Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
-                        }
-                        else {
-                            val color = ChatColor.translateAlternateColorCodes('&', partyBungeeClient!!.bridge.getGroupPrefix(id))
-                            partyBungeeClient!!.messenger.message("$color$pId §cmöchte nicht eingeladen werden.", inviter)
-                        }
-                    })
-                }
+        if (!pId.equals(inviter.name, true)) {
+            if (isOnline(pId)) {
+                partyBungeeClient!!.messenger.message("§7Die Einladung wurde verschickt.", inviter)
+                party.invite(
+                    PlayerNameToUuidMapping(pId, null),
+                    PlayerNameToUuidMapping(inviter.name, inviter.uniqueId),
+                    Consumer { response: PartyInviteResponse -> handlePartyInviteResponse(response, inviter) })
             }
-            else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
+        }
+        else partyBungeeClient!!.messenger.message("§c$pId ist nicht online.", inviter)
     }
 }
 
-internal fun handlePartyUpdate(party: Party, affected: UUID, memberMessage: String, affectedMessage: String) {
-    val color = ChatColor.translateAlternateColorCodes('&', partyBungeeClient!!.bridge.getGroupPrefix(affected))
-    val name = PlayerResolver.resolveUuidToName(affected)
+internal fun handlePartyUpdate(
+    party: Party,
+    affected: PlayerNameToUuidMapping,
+    memberMessage: String,
+    affectedMessage: String
+) {
+    val color = ChatColor.getByChar(partyBungeeClient!!.bridge.getGroupPrefix(affected.uuid)[1])
+    val name = affected.name
     
-    partyBungeeClient!!.proxy.getPlayer(affected)?.let {
+    partyBungeeClient!!.proxy.getPlayer(affected.uuid)?.let {
         partyBungeeClient!!.messenger.message(affectedMessage, it)
     }
     
@@ -92,13 +87,17 @@ internal fun handlePartyUpdate(party: Party, affected: UUID, memberMessage: Stri
     set.add(party.getPartyOwner())
     
     set
-            .filter  { memberUuid -> memberUuid != affected }
-            .map     { memberUuid -> partyBungeeClient!!.proxy.getPlayer(memberUuid) }
-            .filter  { member -> Objects.nonNull(member) }
-            .forEach { member ->  partyBungeeClient!!.messenger.message(memberMessage.replace("{c}", color).replace("{p}", name.orElse(":(")), member) }
+        .filter { memberUuid -> memberUuid != affected.uuid }
+        .map { memberUuid -> partyBungeeClient!!.proxy.getPlayer(memberUuid) }
+        .filter { member -> Objects.nonNull(member) }
+        .forEach { member ->
+            partyBungeeClient!!.messenger.message(
+                memberMessage.replace("{c}", color.toString()).replace("{p}", name), member
+            )
+        }
     
 }
 
 internal fun isOnline(nameOrId: String): Boolean {
-    return PlayerResolver.getOnlinePlayerCacheEntry(nameOrId).isPresent
+    return true//PlayerResolver.getOnlinePlayerCacheEntry(nameOrId).isPresent
 }

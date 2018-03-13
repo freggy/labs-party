@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.api
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.createparty.PartyCreateResponsePacket
 import de.bergwerklabs.atlantis.api.party.packages.info.PartyInfoResponsePacket
@@ -31,7 +32,7 @@ class PartyApi {
     
     init {
         packageService.addListener(PartyServerInviteResponsePacket::class.java, { pkg ->
-            invites[pkg.initalSender]?.accept(wrapPartyInviteResponse(pkg as PartyServerInviteResponsePacket))
+            invites[pkg.initalSender.uuid]?.accept(wrapPartyInviteResponse(pkg as PartyServerInviteResponsePacket))
         })
     }
     
@@ -173,7 +174,7 @@ class PartyApi {
         /**
          *
          */
-        fun respondToInvite(status: PartyInviteStatus, respondingPlayer: UUID, request: PartyServerInviteRequestPacket) {
+        fun respondToInvite(status: PartyInviteStatus, respondingPlayer: PlayerNameToUuidMapping, request: PartyServerInviteRequestPacket) {
             val resolution = when (status) {
                 PartyInviteStatus.ACCEPTED -> InviteStatus.ACCEPTED
                 PartyInviteStatus.DENIED   -> InviteStatus.DENIED

@@ -19,8 +19,8 @@ class PartyUpdatePackageListener : AtlantisPackageListener<PartyUpdatePacket>() 
     
     override fun onResponse(pkg: PartyUpdatePacket) {
         when (pkg.update) {
-            PartyUpdate.PLAYER_KICK  -> this.handlePlayerKick(pkg.player, pkg.party.id)
-            PartyUpdate.PLAYER_LEAVE -> this.handlePlayerLeave(pkg.player, pkg.party.id)
+            PartyUpdate.PLAYER_KICK  -> this.handlePlayerKick(pkg.player.uuid, pkg.party.id)
+            PartyUpdate.PLAYER_LEAVE -> this.handlePlayerLeave(pkg.player.uuid, pkg.party.id)
         }
     }
     

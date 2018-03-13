@@ -1,9 +1,11 @@
 package de.bergwerklabs.party.server.listener
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.api.party.packages.invite.*
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdate
 import de.bergwerklabs.atlantis.api.party.packages.update.PartyUpdatePacket
+import de.bergwerklabs.atlantis.client.base.resolve.PlayerResolver
 import de.bergwerklabs.atlantis.client.base.util.AtlantisPackageService
 import de.bergwerklabs.party.server.*
 import java.util.*
@@ -20,6 +22,8 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
     
     override fun onResponse(pkg: PartyClientInviteRequestPacket) {
         val party = currentParties[pkg.party.id]
+        val invited = PlayerResolver.resolveNameToUuid(pkg.invitedPlayer.name)
+        
         
         logger.info("Received invite request from ${pkg.sender} for ${pkg.invitedPlayer} to party ${pkg.party.id}")
         
@@ -30,26 +34,26 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
                 return
             }
         }
-        else if (currentParties.values.any { p -> p.members.contains(pkg.invitedPlayer) || p.owner == pkg.invitedPlayer }) {
+        else if (currentParties.values.any { p -> p.members.contains(invited.uuid) || p.owner == invited.uuid }) {
             logger.info("Invited player ${pkg.invitedPlayer} is already partied.")
-            packageService.sendResponse(PartyServerInviteResponsePacket(pkg.party, UUID.randomUUID(), pkg.sender, InviteStatus.ALREADY_PARTIED), pkg)
+            packageService.sendResponse(PartyServerInviteResponsePacket(pkg.party, PlayerNameToUuidMapping("", UUID.randomUUID()), pkg.sender, InviteStatus.ALREADY_PARTIED), pkg)
             return
         }
         else {
             logger.info("Party does not exist anymore, sending error message back.")
-            packageService.sendResponse(PartyServerInviteResponsePacket(pkg.party, UUID.randomUUID(), pkg.sender, InviteStatus.PARTY_NOT_PRESENT), pkg)
+            packageService.sendResponse(PartyServerInviteResponsePacket(pkg.party, PlayerNameToUuidMapping("", UUID.randomUUID()), pkg.sender, InviteStatus.PARTY_NOT_PRESENT), pkg)
             return
         }
     
         logger.info("Invite is now pending, after 30 seconds it will be removed.")
-        pendingInvites[pkg.invitedPlayer] = System.currentTimeMillis()
+        pendingInvites[invited.uuid] = System.currentTimeMillis()
         
         packageService.sendPackage(PartyServerInviteRequestPacket(party, pkg.invitedPlayer, pkg.sender, null), PartyClientInviteResponsePacket::class.java, AtlantisPackageService.Callback { response ->
             val responseParty = currentParties[pkg.party.id]
             val clientResponse = response as PartyClientInviteResponsePacket
             
             if (responseParty != null) { // check if party is present
-                if (pendingInvites.containsKey(clientResponse.responder)) { // check if invite is not expired.
+                if (pendingInvites.containsKey(clientResponse.responder.uuid)) { // check if invite is not expired.
                     if (party.members.size >= 7) {
                         logger.info("Party is already full, sending error message back...")
                         packageService.sendPackage(PartyServerInviteResponsePacket(responseParty, clientResponse.responder, clientResponse.initalSender, InviteStatus.PARTY_FULL))
@@ -57,8 +61,8 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
                     else {
                         logger.info("Sending response of invited player...")
                         if (clientResponse.status == InviteStatus.ACCEPTED) {
-                            currentParties[clientResponse.party.id]?.members?.add(clientResponse.responder)
-                            pendingInvites.remove(clientResponse.responder)
+                            currentParties[clientResponse.party.id]?.members?.add(clientResponse.responder.uuid)
+                            pendingInvites.remove(clientResponse.responder.uuid)
                             packageService.sendPackage(PartyUpdatePacket(clientResponse.party, clientResponse.responder, PartyUpdate.PLAYER_JOIN))
                         }
                         packageService.sendPackage(PartyServerInviteResponsePacket(clientResponse.party, clientResponse.responder, clientResponse.initalSender, clientResponse.status))

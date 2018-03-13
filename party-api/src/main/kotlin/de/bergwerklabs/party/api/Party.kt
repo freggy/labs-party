@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.api
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.party.api.wrapper.PartyInviteResponse
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
@@ -65,7 +66,7 @@ interface Party {
      *
      * @param member [UUID] of the member to remove from the party.
      */
-    fun removeMember(member: UUID, update: PartyUpdateAction)
+    fun removeMember(member: PlayerNameToUuidMapping, update: PartyUpdateAction)
     
     /**
      * Invites a player to a party.
@@ -74,7 +75,7 @@ interface Party {
      * @param  sender
      * @param  callback callback to execute when the packet is received.
      */
-    fun invite(player: UUID, sender: UUID,  callback: Consumer<PartyInviteResponse>)
+    fun invite(player: PlayerNameToUuidMapping, sender: PlayerNameToUuidMapping, callback: Consumer<PartyInviteResponse>)
     
     /**
      * Saves the party.

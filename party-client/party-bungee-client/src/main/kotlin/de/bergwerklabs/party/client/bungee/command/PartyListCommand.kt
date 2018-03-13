@@ -60,20 +60,18 @@ class PartyListCommand : BungeeCommand {
     private fun displayOwnerView(player: ProxiedPlayer, party: Party) {
         player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-----§b Party-Übersicht §6§m-----"))
         party.getMembers().forEach { member ->
-            PlayerResolver.resolveUuidToName(member).ifPresent {
-                val message = ComponentBuilder("✖").color(ChatColor.RED)
-                    .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party kick $it"))
-                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Entfernt $it von der Party.")))
-                    .append("☗").color(ChatColor.GREEN)
-                    .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party promote $it"))
-                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Befördert $it zun neuen Party-Owner.")))
-                    .append("➥").color(ChatColor.AQUA)
-                    .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $it"))
-                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu $it teleportiert.")))
-                    .append(" $it")
-                    .create()
-                player.sendMessage(ChatMessageType.CHAT, *message)
-            }
+            val mapping = PlayerResolver.resolveUuidToName(member)
+            val message = ComponentBuilder("✖").color(ChatColor.RED)
+                .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party kick ${mapping.name}"))
+                .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Entfernt ${mapping.name} von der Party.")))
+                .append("☗").color(ChatColor.GREEN)
+                .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party promote ${mapping.name}"))
+                .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Befördert ${mapping.name} zun neuen Party-Owner.")))
+                .append("➥").color(ChatColor.AQUA)
+                .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp ${mapping.name}"))
+                .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Du wirst zu ${mapping.name} teleportiert.")))
+                .append(" ${mapping.name}")
+                .create()
         }
         player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-------------------------"))
     }
@@ -86,7 +84,7 @@ class PartyListCommand : BungeeCommand {
      */
     private fun displayMemberView(player: ProxiedPlayer, party: Party) {
         player.sendMessage(ChatMessageType.CHAT, *TextComponent.fromLegacyText("§6§m-----§b Party-Übersicht §6§m-----"))
-        val ownerName = PlayerResolver.resolveUuidToName(party.getPartyOwner()).get()
+        val ownerName = PlayerResolver.resolveUuidToName(party.getPartyOwner())
         
         val message = ComponentBuilder("■").color(ChatColor.GOLD)
                 .append("➥").color(ChatColor.AQUA)
@@ -98,7 +96,7 @@ class PartyListCommand : BungeeCommand {
         
         party.getMembers().forEach { member ->
             if (member != player.uniqueId) {
-                val memberName = PlayerResolver.resolveUuidToName(member).orElse(":(")
+                val memberName = PlayerResolver.resolveUuidToName(member)
                 val msg = ComponentBuilder("■").color(ChatColor.GREEN)
                         .append("➥").color(ChatColor.AQUA)
                         .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party tp $memberName"))

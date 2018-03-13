@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.client.bungee.command
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyUpdateAction
@@ -31,7 +32,7 @@ class PartyLeaveCommand : BungeeCommand {
                     if (party.isOwner(sender.uniqueId)) {
                         party.disband()
                     }
-                    else party.removeMember(sender.uniqueId, PartyUpdateAction.PLAYER_LEAVE)
+                    else party.removeMember(PlayerNameToUuidMapping(sender.name, sender.uniqueId), PartyUpdateAction.PLAYER_LEAVE)
                 }
                 else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
             })

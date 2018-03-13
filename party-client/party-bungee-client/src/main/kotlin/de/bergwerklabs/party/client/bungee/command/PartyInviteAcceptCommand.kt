@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.client.bungee.command
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.framework.commons.bungee.command.BungeeCommand
 import de.bergwerklabs.party.api.PartyApi
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
@@ -32,7 +33,7 @@ class PartyInviteAcceptCommand : BungeeCommand {
                 if (!it) {
                     val req = partyBungeeClient!!.invitedFor[sender.uniqueId]
                     if (req != null) {
-                        PartyApi.respondToInvite(PartyInviteStatus.ACCEPTED, sender.uniqueId, req)
+                        PartyApi.respondToInvite(PartyInviteStatus.ACCEPTED, PlayerNameToUuidMapping(sender.name, sender.uniqueId), req)
                         // remove all entries because player is partied and should no longer respond to those invites
                         partyBungeeClient!!.invitedFor.remove(sender.uniqueId)
                     }

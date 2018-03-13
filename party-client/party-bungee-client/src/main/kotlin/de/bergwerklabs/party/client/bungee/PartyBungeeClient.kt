@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.client.bungee
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.atlantis.api.logging.AtlantisLogger
 import de.bergwerklabs.atlantis.api.party.packages.PartyChangeOwnerPacket
 import de.bergwerklabs.atlantis.api.party.packages.PartyChatPacket
@@ -101,17 +102,6 @@ class PartyBungeeClient : Plugin(), Listener {
         this.helpDisplay = CommandHelpDisplay(parentCommand.subCommands.toSet())
         this.proxy.pluginManager.registerCommand(this, partyChatCommand)
         this.proxy.pluginManager.registerCommand(this, parentCommand)
-        
-        /*
-        this.proxy.scheduler.schedule(this, {
-            println("HELLO1")
-            cooldown.forEach { uuid, infos ->
-                println("HELLO")
-                println(uuid)
-                println(infos)
-                println(infos.removeAll(infos.filter { it.expires + 30_000 <= System.currentTimeMillis() }.toSet()))
-            }
-        }, 1, TimeUnit.SECONDS)*/
     
         this.packageService.addListener(PartySwitchServerPacket::class.java, { pkg ->
             pkg.party.members.forEach { member ->
@@ -149,7 +139,7 @@ class PartyBungeeClient : Plugin(), Listener {
         })
     
         this.packageService.addListener(PartyServerInviteResponsePacket::class.java, { pkg ->
-            this.proxy.getPlayer(pkg.responder)?.let {
+            this.proxy.getPlayer(pkg.responder.uuid)?.let {
                 when (pkg.status) {
                     InviteStatus.PARTY_NOT_PRESENT -> this.messenger.message("§cDie Party is nicht mehr verfügbar", it)
                     InviteStatus.PARTY_FULL        -> this.messenger.message("§cDie Party is voll.", it)
@@ -174,9 +164,9 @@ class PartyBungeeClient : Plugin(), Listener {
         })
     
         this.packageService.addListener(PartyServerInviteRequestPacket::class.java, { pkg ->
-                this.proxy.getPlayer(pkg.responder)?.let {
-                    val initialSenderName = PlayerResolver.resolveUuidToName(pkg.initalSender).get()
-                    val initalSenderColor = this.bridge.getGroupPrefix(pkg.initalSender) //zBridge.getRankColor(pkg.initalSender).toString()
+                this.proxy.getPlayer(pkg.responder.uuid)?.let {
+                    val initialSenderName = pkg.initalSender.name
+                    val initalSenderColor = this.bridge.getGroupPrefix(pkg.initalSender.uuid)
         
                     // nasty little workaround to get the fancy message centered as well.
                     val spaces = MessageUtil.getSpacesToCenter("§a[ANNEHMEN]§6 | §c[ABLEHNEN]")
@@ -202,29 +192,18 @@ class PartyBungeeClient : Plugin(), Listener {
         })
     }
     
-    fun runAsync(method: (Unit) -> Unit) {
-        this.proxy.scheduler.runAsync(this, { method.invoke(Unit) })
-    }
-    
-    
-    @EventHandler
-    fun onPlayerJoin(event: PostLoginEvent) {
-        cooldown[event.player.uniqueId] = mutableSetOf<CooldownInfo>()
-    }
-    
     @EventHandler
     fun onPlayerDisconnectServer(event: PlayerDisconnectEvent) {
-        val uuid = event.player.uniqueId
-        cooldown.remove(uuid)
-        PartyApi.getParty(uuid, Consumer {
+        val player = event.player
+        PartyApi.getParty(player.uniqueId, Consumer {
             it.ifPresent {
-                if (it.isOwner(uuid)) {
+                if (it.isOwner(player.uniqueId)) {
                     this.logger.info("Party owner left the server, disbanding party.")
                     it.disband()
                 }
                 else {
                     this.logger.info("Party member left the server, he will be removed from the party.")
-                    it.removeMember(uuid, PartyUpdateAction.PLAYER_LEAVE)
+                    it.removeMember(PlayerNameToUuidMapping(player.name, player.uniqueId), PartyUpdateAction.PLAYER_LEAVE)
                 }
             }
         })

@@ -1,5 +1,6 @@
 package de.bergwerklabs.party.api.wrapper
 
+import de.bergwerklabs.api.cache.pojo.PlayerNameToUuidMapping
 import de.bergwerklabs.atlantis.api.party.AtlantisParty
 import de.bergwerklabs.atlantis.api.party.packages.PartyChangeOwnerPacket
 import de.bergwerklabs.atlantis.api.party.packages.PartyDisbandPacket
@@ -75,7 +76,7 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         this.disbanded = true
         packageService.sendPackage(PartyDisbandPacket(this.toAtlantisParty()))
-        packageService.sendPackage(PartyUpdatePacket(this.toAtlantisParty(), this.owner, PartyUpdate.DISBAND))
+        packageService.sendPackage(PartyUpdatePacket(this.toAtlantisParty(), PlayerNameToUuidMapping("Owner", this.owner), PartyUpdate.DISBAND))
     }
     
     /**
@@ -98,9 +99,9 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
      * @param player [UUID] of the player to invite.
      * @return       the [PartyInviteStatus]
      */
-    override fun invite(player: UUID, sender: UUID, callback: Consumer<PartyInviteResponse>) {
+    override fun invite(player: PlayerNameToUuidMapping, sender: PlayerNameToUuidMapping, callback: Consumer<PartyInviteResponse>) {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
-        invites[sender] = callback
+        invites[sender.uuid] = callback
         packageService.sendPackage(PartyClientInviteRequestPacket(this.toAtlantisParty(), sender, player))
     }
     
@@ -111,17 +112,17 @@ internal class PartyWrapper(val id: UUID, var owner: UUID, private val membersLi
      *
      * @param member [UUID] of the member to remove from the party.
      */
-    override fun removeMember(member: UUID, update: PartyUpdateAction) {
+    override fun removeMember(member: PlayerNameToUuidMapping, update: PartyUpdateAction) {
         if (this.disbanded) throw IllegalStateException("Party is not available anymore, since it was disbanded")
         
-        if (!this.membersList.contains(member)) return
+        if (!this.membersList.contains(member.uuid)) return
         
-        if (member == this.owner) {
-            this.membersList.remove(member)
+        if (member.uuid == this.owner) {
+            this.membersList.remove(member.uuid)
             this.changeOwner(this.membersList[Random().nextInt(this.membersList.size)])
         }
         else {
-            this.membersList.remove(member)
+            this.membersList.remove(member.uuid)
         }
         
         val status = when (update) {
