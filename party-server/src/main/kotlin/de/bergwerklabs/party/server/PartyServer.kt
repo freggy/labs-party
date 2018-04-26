@@ -74,6 +74,7 @@ class PartyServer {
                     }
                 }
             }, 20, 1000)
+            while (true) {}
         }
     }
 }

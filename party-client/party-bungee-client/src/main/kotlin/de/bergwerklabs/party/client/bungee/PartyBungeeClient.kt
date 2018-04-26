@@ -40,11 +40,6 @@ import kotlin.collections.HashMap
 
 var partyBungeeClient: PartyBungeeClient? = null
 
-
-data class CooldownInfo(val name: String, val expires: Long)
-
-val cooldown = ConcurrentHashMap<UUID, MutableSet<CooldownInfo>>()
-
 /**
  * Created by Yannic Rieger on 17.10.2017.
  *
@@ -89,6 +84,7 @@ class PartyBungeeClient : Plugin(), Listener {
                 partyHelpCommand,
                 PartyKickCommand(),
                 PartyDisbandCommand(),
+                PartyWarpCommand(),
                 PartyInviteCommand(),
                 PartyInviteAcceptCommand(),
                 PartyInviteDenyCommand(),

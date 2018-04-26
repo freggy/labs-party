@@ -12,6 +12,7 @@ import de.bergwerklabs.party.api.common.*
 import de.bergwerklabs.party.api.wrapper.PartyInviteStatus
 import de.bergwerklabs.party.api.wrapper.PartyWrapper
 import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
 
@@ -45,9 +46,12 @@ class PartyApi {
          * @return              whether or not the player is in a party.
          */
         @JvmStatic
-        fun isPartied(player: UUID): Boolean {
-            val response = sendInfoPacketAndGetResponse(player)
-            return response.party != null
+        fun isPartied(player: UUID): CompletableFuture<Boolean> {
+            val future = CompletableFuture<Boolean>()
+            sendInfoPacketAndGetResponse(player, Consumer { packet ->
+                future.complete(packet.party != null)
+            })
+            return future
         }
     
         @JvmStatic
@@ -64,9 +68,12 @@ class PartyApi {
          * @return       whether or not the player is the party owner.
          */
         @JvmStatic
-        fun isPartyOwner(player: UUID): Boolean {
-            val response = sendInfoPacketAndGetResponse(player)
-            return response.party.owner == player
+        fun isPartyOwner(player: UUID): CompletableFuture<Boolean> {
+            val future = CompletableFuture<Boolean>()
+            sendInfoPacketAndGetResponse(player, Consumer { packet ->
+                future.complete(packet.party.owner == player)
+            })
+            return future
         }
         
         @JvmStatic
@@ -83,9 +90,12 @@ class PartyApi {
          * @return       whether or not the player is only a member.
          */
         @JvmStatic
-        fun isPartyMember(player: UUID): Boolean {
-            val response = sendInfoPacketAndGetResponse(player)
-            return response.party.members.contains(player)
+        fun isPartyMember(player: UUID): CompletableFuture<Boolean> {
+            val future = CompletableFuture<Boolean>()
+            sendInfoPacketAndGetResponse(player, Consumer { packet ->
+                future.complete(packet.party.members.contains(player))
+            })
+            return future
         }
     
         @JvmStatic
@@ -102,12 +112,16 @@ class PartyApi {
          * @return       [Optional] that contains the party of the player if he is in one.
          */
         @JvmStatic
-        fun getParty(player: UUID): Optional<Party> {
-            val response = sendInfoPacketAndGetResponse(player)
-            return when {
-                response.party == null -> Optional.empty()
-                else                   -> Optional.of(PartyWrapper(response.party))
-            }
+        fun getParty(player: UUID): CompletableFuture<Optional<Party>> {
+            val future = CompletableFuture<Optional<Party>>()
+            sendInfoPacketAndGetResponse(player, Consumer { packet ->
+                val optional: Optional<Party> = when {
+                    packet.party == null -> Optional.empty()
+                    else                 -> Optional.of(PartyWrapper(packet.party))
+                }
+                future.complete(optional)
+            })
+            return future
         }
     
         @JvmStatic
@@ -174,7 +188,8 @@ class PartyApi {
         /**
          *
          */
-        fun respondToInvite(status: PartyInviteStatus, respondingPlayer: PlayerNameToUuidMapping, request: PartyServerInviteRequestPacket) {
+        fun respondToInvite(status: PartyInviteStatus, respondingPlayer: PlayerNameToUuidMapping, request: PartyServerInviteRequestPacket?) {
+            if (request == null) return
             val resolution = when (status) {
                 PartyInviteStatus.ACCEPTED -> InviteStatus.ACCEPTED
                 PartyInviteStatus.DENIED   -> InviteStatus.DENIED

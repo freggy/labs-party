@@ -27,21 +27,22 @@ class PartyChatCommand : Command("p", "", "p"), BungeeCommand {
     
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender is ProxiedPlayer) {
-            val optional = PartyApi.getParty(sender.uniqueId)
-            if (optional.isPresent) {
-                val party = optional.get()
-                
-                val toSend = HashSet(party.getMembers().toHashSet())
-                toSend.add(party.getPartyOwner())
-                
-                partyBungeeClient!!.packageService.sendPackage(PartyChatPacket(
+            PartyApi.getParty(sender.uniqueId).thenAccept { optional ->
+                if (optional.isPresent) {
+                    val party = optional.get()
+        
+                    val toSend = HashSet(party.getMembers().toHashSet())
+                    toSend.add(party.getPartyOwner())
+        
+                    partyBungeeClient!!.packageService.sendPackage(PartyChatPacket(
                         party.toAtlantisParty(),
                         toSend,
                         PlayerNameToUuidMapping(sender.name, sender.uniqueId),
                         args!!.copyOfRange(0, args.size).joinToString(" ")
-                ))
+                    ))
+                }
+                else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
             }
-            else partyBungeeClient!!.messenger.message("§cDu bist in keiner Party.", sender)
         }
     }
 }

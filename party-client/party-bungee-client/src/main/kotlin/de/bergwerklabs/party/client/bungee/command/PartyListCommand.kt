@@ -62,7 +62,7 @@ class PartyListCommand : BungeeCommand {
     private fun displayOwnerView(player: ProxiedPlayer, party: Party) {
         val future = CompletableFuture<List<PlayerNameToUuidMapping>>()
         partyBungeeClient!!.proxy.scheduler.runAsync(partyBungeeClient!!, {
-            future.complete(party.getMembers().map { member -> PlayerResolver.resolveUuidToName(member) }.toList())
+            future.complete(party.getMembers().map { member -> PlayerResolver.resolveUuidToNameAsync(member).join().get() }.toList())
         })
         
         future.thenAccept { mappings ->
@@ -113,7 +113,7 @@ class PartyListCommand : BungeeCommand {
     private fun displayMemberView(player: ProxiedPlayer, party: Party) {
         val future = CompletableFuture<List<PlayerNameToUuidMapping>>()
         partyBungeeClient!!.proxy.scheduler.runAsync(partyBungeeClient!!, {
-            future.complete(party.getMembers().map { member -> PlayerResolver.resolveUuidToName(member) })
+            future.complete(party.getMembers().map { member -> PlayerResolver.resolveUuidToNameAsync(member).join().get() })
         })
         
         

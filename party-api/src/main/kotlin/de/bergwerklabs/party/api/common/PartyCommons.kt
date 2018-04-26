@@ -24,32 +24,11 @@ import kotlin.collections.HashMap
 
 internal val invites = HashMap<UUID, Consumer<PartyInviteResponse>>()
 
-/**
- * Sends a [PartyInfoRequestPackage] and waits until the packet is received.
- *
- * @param player player to get the info from.
- */
-internal fun sendInfoPacketAndGetResponse(player: UUID): PartyInfoResponsePacket {
-    val future = packageService.sendRequestWithFuture(PartyInfoRequestPacket(player), PartyInfoResponsePacket::class.java)
-    
-    return try {
-        future.get(1, TimeUnit.SECONDS)
-    }
-    catch (ex: Exception) {
-        ex.printStackTrace()
-        future.cancel(true)
-        // return dummy object to prevent crashes.
-        return PartyInfoResponsePacket(UUID.randomUUID(), AtlantisParty(UUID.randomUUID(), arrayListOf(UUID.randomUUID()), UUID.randomUUID()))
-    }
-}
-
 internal fun sendInfoPacketAndGetResponse(player: UUID, consumer: Consumer<PartyInfoResponsePacket>) {
     packageService.sendPackage(PartyInfoRequestPacket(player), PartyInfoResponsePacket::class.java, AtlantisPackageService.Callback { pkg ->
         consumer.accept(pkg)
     })
 }
-
-
 
 /**
  * Creates a new [Party].

@@ -22,7 +22,10 @@ class PartyInviteRequestListener : AtlantisPackageListener<PartyClientInviteRequ
     
     override fun onResponse(pkg: PartyClientInviteRequestPacket) {
         val party = currentParties[pkg.party.id]
-        val invited = PlayerResolver.resolveNameToUuid(pkg.invitedPlayer.name)
+        val opt = PlayerResolver.resolveNameToUuidAsync(pkg.invitedPlayer.name).join()
+        
+        if (!opt.isPresent) return
+        val invited = opt.get()
         
         logger.info("Received invite request from ${pkg.sender} for ${pkg.invitedPlayer} to party ${pkg.party.id}")
         
