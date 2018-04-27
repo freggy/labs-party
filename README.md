@@ -19,7 +19,7 @@ rules. The use of `null` should be avoided where possible. Read [this article](h
 Usage and Documentation
 -----------------------
 
-API usage and documentation can be found in the [Wiki](https://github.com/Freggy/labs-framework/wiki) of this repository.
+API usage and documentation can be found in the [Wiki](https://github.com/Freggy/labs-party/wiki) of this repository.
 
 License
 -------
